@@ -448,7 +448,7 @@ static void s21_uint_to_str(unsigned int value, char *buffer) {
   }
 
   while (value > 0) {
-    temp[i++] = (char)((value % 10) + '0');
+    temp[i++] = (char)(value % 10 + '0');
     value /= 10;
   }
 
@@ -461,12 +461,16 @@ static void s21_uint_to_str(unsigned int value, char *buffer) {
   buffer[j] = '\0';
 }
 
-static void s21_double_to_str(double value, char *buffer) {
+static void s21_double_to_str(double value, char *buffer, int precision) {
   int negative = 0;
 
   if (value < 0) {
     negative = 1;
     value = -value;
+  }
+
+  if (precision < 0) {
+    precision = 6;
   }
 
   int integer = (int)value;
@@ -488,15 +492,16 @@ static void s21_double_to_str(double value, char *buffer) {
     *p++ = *q++;
   }
 
+  if (precision > 0) {
   *p++ = '.';
 
-  for (int i = 0; i < 6; i++) {
+  for (int i = 0; i < precision; i++) {
     fraction *= 10;
     int digit = (int)fraction;
     *p++ = (char)(digit + '0');
     fraction -= digit;
   }
-
+}
   *p = '\0';
 }
 
@@ -612,7 +617,7 @@ int s21_sprintf(char *str, const char *format, ...) {
           double value = va_arg(args, double);
 
           char buffer[128];
-          s21_double_to_str(value, buffer);
+          s21_double_to_str(value, buffer, fmt.precision);
 
           char *p = buffer;
 

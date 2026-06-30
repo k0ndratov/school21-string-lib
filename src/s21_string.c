@@ -402,24 +402,232 @@ char *s21_strerror(int errnum) {
   return result;
 }
 
+
+static void s21_int_to_str(int value, char *buffer) {
+  char temp[32];
+  int i = 0;
+  int negative = 0;
+
+  if (value == 0) {
+    buffer[0] = '0';
+    buffer[1] = '\0';
+    return;
+  }
+
+  if (value < 0) {
+    negative = 1;
+    value = -value;
+  }
+
+  while (value > 0) {
+    temp[i++] = (value % 10) + '0';
+    value /= 10;
+  }
+
+  if (negative) {
+    temp[i++] = '-';
+  }
+
+  int j = 0;
+
+  while (i > 0) {
+    buffer[j++] = temp[--i];
+  }
+
+  buffer[j] = '\0';
+}
+
+static void s21_uint_to_str(unsigned int value, char *buffer) {
+  char temp[32];
+  int i = 0;
+
+  if (value == 0) {
+    buffer[0] = '0';
+    buffer[1] = '\0';
+    return;
+  }
+
+  while (value > 0) {
+    temp[i++] = (char)((value % 10) + '0');
+    value /= 10;
+  }
+
+  int j = 0;
+
+  while (i > 0) {
+    buffer[j++] = temp[--i];
+  }
+
+  buffer[j] = '\0';
+}
+
+static void s21_double_to_str(double value, char *buffer) {
+  int negative = 0;
+
+  if (value < 0) {
+    negative = 1;
+    value = -value;
+  }
+
+  int integer = (int)value;
+  double fraction = value - integer;
+
+  fraction += 0.0000005;
+
+  char temp[64];
+  s21_int_to_str(integer, temp);
+
+  char *p = buffer;
+
+  if (negative) {
+    *p++ = '-';
+  }
+
+  char *q = temp;
+  while (*q) {
+    *p++ = *q++;
+  }
+
+  *p++ = '.';
+
+  for (int i = 0; i < 6; i++) {
+    fraction *= 10;
+    int digit = (int)fraction;
+    *p++ = (char)(digit + '0');
+    fraction -= digit;
+  }
+
+  *p = '\0';
+}
+
+static void s21_parse_format(const char **format, s21_format *f) {
+  f->minus = 0;
+  f->plus = 0;
+  f->space = 0;
+  f->width = 0;
+  f->precision = -1;
+  f->length = '\0';
+  f->specifier = '\0';
+
+  while (**format == '-' || **format == '+' || **format == ' ') {
+    if (**format == '-') {
+      f->minus = 1;
+    } else if (**format == '+') {
+      f->plus = 1;
+    } else if (**format == ' ') {
+      f->space = 1;
+    }
+
+    (*format)++;
+  }
+
+  if (**format == '.') {
+  (*format)++;
+
+  if (**format == '.') {
+  (*format)++;
+
+  f->precision = 0;
+
+  while (**format >= '0' && **format <= '9') {
+    f->precision = f->precision * 10 + (**format - '0');
+    (*format)++;
+  }
+}
+
+  f->precision = 0;
+
+  while (**format >= '0' && **format <= '9') {
+    f->precision = f->precision * 10 + (**format - '0');
+    (*format)++;
+  }
+ }
+
+  f->specifier = **format;
+}
+
 int s21_sprintf(char *str, const char *format, ...) {
   va_list args;
   va_start(args, format);
 
   char *start = str;
 
- while (*format) {
-   if (*format == '%') {
-     format++;
-
-     if (*format == '%') {
-      *str++ = '%';
+  while (*format) {
+    if (*format == '%') {
       format++;
+
+      s21_format fmt;
+      s21_parse_format(&format, &fmt);
+      
+      
+      if (fmt.specifier == '%')  {
+        *str++ = '%';
+        format++;
+
+        s21_format fmt;
+        s21_parse_format(&format, &fmt);
+
+      } else if (fmt.specifier == 'c') {
+        *str++ = (char)va_arg(args, int);
+        format++;
+
+      } else if (fmt.specifier == 's') {
+        char *src = va_arg(args, char *);
+
+        while (*src) {
+          *str++ = *src++;
+        }
+
+        format++;
+
+      } else if (fmt.specifier == 'd') {
+        int value = va_arg(args, int);
+
+        char buffer[32];
+        s21_int_to_str(value, buffer);
+
+        char *p = buffer;
+
+        while (*p) {
+          *str++ = *p++;
+        }
+
+        format++;
+
+       } else if (fmt.specifier == 'u') {
+          unsigned int value = va_arg(args, unsigned int);
+
+          char buffer[32];
+          s21_uint_to_str(value, buffer);
+
+          char *p = buffer;
+
+          while (*p) {
+            *str++ = *p++;
+          }
+
+          format++;
+        
+       } else if (fmt.specifier == 'f') {
+          double value = va_arg(args, double);
+
+          char buffer[128];
+          s21_double_to_str(value, buffer);
+
+          char *p = buffer;
+
+         while (*p) {
+          *str++ = *p++;
+        }
+
+        format++;
+        
+       }
+
+    } else {
+      *str++ = *format++;
     }
-  } else {
-    *str++ = *format++;
   }
- }
 
   *str = '\0';
 

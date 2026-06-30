@@ -11,6 +11,18 @@ int s21_sprintf(char *str, const char *format, ...);
 
 typedef size_t s21_size_t;
 
+typedef struct {
+  int minus;
+  int plus;
+  int space;
+
+  int width;
+  int precision;
+
+  char length;
+  char specifier;
+} s21_format;
+
 s21_size_t s21_strlen(const char *str);
 
 void *s21_memset(void *str, int c, s21_size_t n);

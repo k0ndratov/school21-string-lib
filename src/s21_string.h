@@ -15,6 +15,7 @@ typedef struct {
   int minus;
   int plus;
   int space;
+  
 
   int width;
   int precision;

@@ -514,6 +514,7 @@ static void s21_parse_format(const char **format, s21_format *f) {
   f->length = '\0';
   f->specifier = '\0';
 
+  
   while (**format == '-' || **format == '+' || **format == ' ') {
     if (**format == '-') {
       f->minus = 1;
@@ -526,30 +527,38 @@ static void s21_parse_format(const char **format, s21_format *f) {
     (*format)++;
   }
 
-  if (**format == '.') {
-  (*format)++;
-
-  if (**format == '.') {
-  (*format)++;
-
-  f->precision = 0;
-
+  
   while (**format >= '0' && **format <= '9') {
-    f->precision = f->precision * 10 + (**format - '0');
+    f->width = f->width * 10 + (**format - '0');
     (*format)++;
   }
-}
 
-  f->precision = 0;
-
-  while (**format >= '0' && **format <= '9') {
-    f->precision = f->precision * 10 + (**format - '0');
+  
+  if (**format == '.') {
     (*format)++;
-  }
- }
 
+    f->precision = 0;
+
+    while (**format >= '0' && **format <= '9') {
+      f->precision = f->precision * 10 + (**format - '0');
+      (*format)++;
+    }
+  }
+
+  
   f->specifier = **format;
 }
+
+static int s21_strlen_local(const char *str) {
+  int len = 0;
+
+  while (str[len]) {
+    len++;
+  }
+
+  return len;
+}
+
 
 int s21_sprintf(char *str, const char *format, ...) {
   va_list args;
@@ -565,16 +574,31 @@ int s21_sprintf(char *str, const char *format, ...) {
       s21_parse_format(&format, &fmt);
       
       
-      if (fmt.specifier == '%')  {
-        *str++ = '%';
-        format++;
-
-        s21_format fmt;
-        s21_parse_format(&format, &fmt);
+      if (fmt.specifier == '%') {
+      *str++ = '%';
+      format++;
 
       } else if (fmt.specifier == 'c') {
-        *str++ = (char)va_arg(args, int);
-        format++;
+  char buffer[2];
+
+  buffer[0] = (char)va_arg(args, int);
+  buffer[1] = '\0';
+
+  int len = s21_strlen_local(buffer);
+
+  while (!fmt.minus && len < fmt.width) {
+    *str++ = ' ';
+    len++;
+  }
+
+  *str++ = buffer[0];
+
+  while (fmt.minus && len < fmt.width) {
+    *str++ = ' ';
+    len++;
+  }
+
+  format++;
 
       } else if (fmt.specifier == 's') {
         char *src = va_arg(args, char *);
@@ -591,11 +615,23 @@ int s21_sprintf(char *str, const char *format, ...) {
         char buffer[32];
         s21_int_to_str(value, buffer);
 
+        int len = s21_strlen_local(buffer);
+
+        while (!fmt.minus && len < fmt.width) {
+           *str++ = ' ';
+           len++;
+      }
+
         char *p = buffer;
 
         while (*p) {
-          *str++ = *p++;
-        }
+        *str++ = *p++;
+    }
+
+       while (fmt.minus && len < fmt.width) {
+         *str++ = ' ';
+         len++;
+   }
 
         format++;
 

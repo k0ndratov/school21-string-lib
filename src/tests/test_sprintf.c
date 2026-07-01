@@ -147,6 +147,17 @@ START_TEST(test_precision_parse) {
 }
 END_TEST
 
+START_TEST(test_width_d) {
+  char s1[100];
+  char s2[100];
+
+  int r1 = s21_sprintf(s1, "%5d", 42);
+  int r2 = sprintf(s2, "%5d", 42);
+
+  ck_assert_int_eq(r1, r2);
+  ck_assert_str_eq(s1, s2);
+}
+END_TEST
 
 
 Suite *sprintf_suite(void) {
@@ -165,6 +176,7 @@ Suite *sprintf_suite(void) {
   tcase_add_test(tc, test_float_zero);
   tcase_add_test(tc, test_float_fraction);
   tcase_add_test(tc, test_precision_parse);
+  tcase_add_test(tc, test_width_d);
 
   suite_add_tcase(suite, tc);
 

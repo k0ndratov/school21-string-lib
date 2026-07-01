@@ -181,6 +181,7 @@ Yuqorida tavsiflangan string.h kutubxonasi funksiyalarini amalga oshirishingiz l
 - Yechimni s21\_string.a nomli statik kutubxona sifatida loyihalashtiring (s21\_string.h sarlavha fayli bilan).
 - Kutubxona tuzilmaviy dasturlash tamoyillariga muvofiq ishlab chiqilishi kerak, koddagi takrorlanishlarni albatta bartaraf eting.
 - Check kutubxonasidan foydalanib, kutubxona funksiyalarining to'liq unit testlar bilan qoplamasini tayyorlang.
+- Testlar kodi src papkasida yoki uning istalgan pastki papkasida joylashgan bo'lishi kerak.
 - Unit testlar sizning realizatsiyangiz ish natijalarini string.h. standart kutubxonasi realizatsiyasi bilan solishtirish orqali tekshirishi kerak.
 - Unit testlar har bir funksiyaning kamida 80% ini qamrab olishi kerak.
 - Kutubxona va testlarni yig’ish uchun Makefile ni nazarda tuting (all, clean, test, s21\_string.a, gcov\_report maqsadlari bilan).

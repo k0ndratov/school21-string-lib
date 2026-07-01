@@ -197,7 +197,7 @@ It is necessary to implement the described [above](#stringh-functions) functions
  - Make it as a static library named *s21_string.a* (with the header file s21_string.h).
  - The library must be developed in accordance with the principles of structured programming, duplication in the code must be avoided.
  - Prepare a full coverage of the library's functions by unit-tests using the Check library.
- - Test's code and the executable file must be located in the _src_ folder or its any subfolder.
+ - Test's code must be located in the _src_ folder or its any subfolder.
  - Unit-tests must check the results of your implementation by comparing them with the implementation of the standard string.h library.
  - Unit tests must cover at least 80% of each function (checked using gcov).
  - Provide a Makefile for building the library and tests (with the targets all, clean, test, s21_string.a, gcov_report).

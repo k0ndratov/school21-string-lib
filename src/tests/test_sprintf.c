@@ -241,4 +241,3 @@ Suite *sprintf_suite(void) {
 
   return suite;
 }
-

@@ -1,11 +1,11 @@
-#include <stdio.h>
 #include "s21_string.h"
 
 #include <stdio.h>
 
 static char error_buffer[128];
 
-static const char *linux_errors[] = {"Success",
+static const char *linux_errors[] = {
+    "Success",
     "Operation not permitted",
     "No such file or directory",
     "No such process",
@@ -144,24 +144,24 @@ static const char *linux_errors[] = {"Success",
 #define S21_ERRLIST_SIZE (sizeof(linux_errors) / sizeof(linux_errors[0]))
 
 s21_size_t s21_strlen(const char *str) {
-    s21_size_t len = 0;
+  s21_size_t len = 0;
 
-    while (str[len] != '\0') {
-        len++;
-    }
+  while (str[len] != '\0') {
+    len++;
+  }
 
-    return len;
+  return len;
 }
 
 void *s21_memset(void *str, int c, s21_size_t n) {
-    unsigned char *ptr = (unsigned char *)str;
-    unsigned char value = (unsigned char)c;
+  unsigned char *ptr = (unsigned char *)str;
+  unsigned char value = (unsigned char)c;
 
-    for (s21_size_t i = 0; i < n; i++) {
-        ptr[i] = value;
-    }
+  for (s21_size_t i = 0; i < n; i++) {
+    ptr[i] = value;
+  }
 
-    return str;
+  return str;
 }
 
 void *s21_memcpy(void *dest, const void *src, s21_size_t n) {
@@ -402,7 +402,6 @@ char *s21_strerror(int errnum) {
   return result;
 }
 
-
 static void s21_int_to_str(int value, char *buffer) {
   char temp[32];
   int i = 0;
@@ -436,10 +435,6 @@ static void s21_int_to_str(int value, char *buffer) {
 
   buffer[j] = '\0';
 }
-
-
-
-
 
 static void s21_uint_to_str(unsigned int value, char *buffer) {
   char temp[32];
@@ -497,15 +492,15 @@ static void s21_double_to_str(double value, char *buffer, int precision) {
   }
 
   if (precision > 0) {
-  *p++ = '.';
+    *p++ = '.';
 
-  for (int i = 0; i < precision; i++) {
-    fraction *= 10;
-    int digit = (int)fraction;
-    *p++ = (char)(digit + '0');
-    fraction -= digit;
+    for (int i = 0; i < precision; i++) {
+      fraction *= 10;
+      int digit = (int)fraction;
+      *p++ = (char)(digit + '0');
+      fraction -= digit;
+    }
   }
-}
   *p = '\0';
 }
 
@@ -518,7 +513,6 @@ static void s21_parse_format(const char **format, s21_format *f) {
   f->length = '\0';
   f->specifier = '\0';
 
-  
   while (**format == '-' || **format == '+' || **format == ' ') {
     if (**format == '-') {
       f->minus = 1;
@@ -531,13 +525,11 @@ static void s21_parse_format(const char **format, s21_format *f) {
     (*format)++;
   }
 
-  
   while (**format >= '0' && **format <= '9') {
     f->width = f->width * 10 + (**format - '0');
     (*format)++;
   }
 
-  
   if (**format == '.') {
     (*format)++;
 
@@ -551,8 +543,8 @@ static void s21_parse_format(const char **format, s21_format *f) {
   if (**format == 'h' || **format == 'l') {
     f->length = **format;
     (*format)++;
-}
-  
+  }
+
   f->specifier = **format;
 }
 
@@ -565,7 +557,6 @@ static int s21_strlen_local(const char *str) {
 
   return len;
 }
-
 
 static void s21_add_leading_zeros(char *buffer, int precision) {
   int negative = 0;
@@ -605,7 +596,6 @@ static void s21_add_leading_zeros(char *buffer, int precision) {
   }
 }
 
-
 int s21_sprintf(char *str, const char *format, ...) {
   va_list args;
   va_start(args, format);
@@ -618,147 +608,141 @@ int s21_sprintf(char *str, const char *format, ...) {
 
       s21_format fmt;
       s21_parse_format(&format, &fmt);
-      
-      
+
       if (fmt.specifier == '%') {
-      *str++ = '%';
-      format++;
+        *str++ = '%';
+        format++;
 
       } else if (fmt.specifier == 'c') {
-  char buffer[2];
+        char buffer[2];
 
-  buffer[0] = (char)va_arg(args, int);
-  buffer[1] = '\0';
+        buffer[0] = (char)va_arg(args, int);
+        buffer[1] = '\0';
 
-  int len = s21_strlen_local(buffer);
+        int len = s21_strlen_local(buffer);
 
-  while (!fmt.minus && len < fmt.width) {
-    *str++ = ' ';
-    len++;
-  }
+        while (!fmt.minus && len < fmt.width) {
+          *str++ = ' ';
+          len++;
+        }
 
-  *str++ = buffer[0];
+        *str++ = buffer[0];
 
-  while (fmt.minus && len < fmt.width) {
-    *str++ = ' ';
-    len++;
-  }
+        while (fmt.minus && len < fmt.width) {
+          *str++ = ' ';
+          len++;
+        }
 
-  format++;
+        format++;
 
       } else if (fmt.specifier == 's') {
-  char *src = va_arg(args, char *);
+        char *src = va_arg(args, char *);
 
-  if (src == S21_NULL) {
-    src = "(null)";
-  }
+        if (src == S21_NULL) {
+          src = "(null)";
+        }
 
-  int len = s21_strlen_local(src);
+        int len = s21_strlen_local(src);
 
-  if (fmt.precision >= 0 && fmt.precision < len) {
-    len = fmt.precision;
-  }
+        if (fmt.precision >= 0 && fmt.precision < len) {
+          len = fmt.precision;
+        }
 
-  while (!fmt.minus && len < fmt.width) {
-    *str++ = ' ';
-    fmt.width--;
-  }
+        while (!fmt.minus && len < fmt.width) {
+          *str++ = ' ';
+          fmt.width--;
+        }
 
-  for (int i = 0; i < len; i++) {
-    *str++ = src[i];
-  }
+        for (int i = 0; i < len; i++) {
+          *str++ = src[i];
+        }
 
-  while (fmt.minus && len < fmt.width) {
-    *str++ = ' ';
-    fmt.width--;
-  }
+        while (fmt.minus && len < fmt.width) {
+          *str++ = ' ';
+          fmt.width--;
+        }
 
-  format++;
-
+        format++;
       } else if (fmt.specifier == 'd') {
-  
+        long value;
 
-  long value;
+        if (fmt.length == 'h') {
+          value = (short)va_arg(args, int);
+        } else if (fmt.length == 'l') {
+          value = va_arg(args, long);
+        } else {
+          value = va_arg(args, int);
+        }
 
-if (fmt.length == 'h') {
-    value = (short)va_arg(args, int);
-} else if (fmt.length == 'l') {
-    value = va_arg(args, long);
-} else {
-    value = va_arg(args, int);
-}
-
-  char buffer[32];
-  s21_int_to_str((int)value, buffer);
-  if (fmt.precision > 0) {
-  s21_add_leading_zeros(buffer, fmt.precision);
-}
-
-  int len = s21_strlen_local(buffer);
-
-  if (fmt.plus && value >= 0) {
-    len++;
-  } else if (fmt.space && value >= 0) {
-    len++;
-  }
-
-  while (!fmt.minus && len < fmt.width) {
-    *str++ = ' ';
-    len++;
-  }
-
-  if (fmt.plus && value >= 0) {
-    *str++ = '+';
-  } else if (fmt.space && value >= 0) {
-    *str++ = ' ';
-  }
-
-  char *p = buffer;
-
-  while (*p) {
-    *str++ = *p++;
-  }
-
-  while (fmt.minus && len < fmt.width) {
-    *str++ = ' ';
-    len++;
-  }
-
-  format++;
-
-
-       } else if (fmt.specifier == 'u') {
-          unsigned int value = va_arg(args, unsigned int);
-
-          char buffer[32];
-          s21_uint_to_str(value, buffer);
-          if (fmt.precision > 0) {
+        char buffer[32];
+        s21_int_to_str((int)value, buffer);
+        if (fmt.precision > 0) {
           s21_add_leading_zeros(buffer, fmt.precision);
-          }
-          
-          char *p = buffer;
+        }
 
-          while (*p) {
-            *str++ = *p++;
-          }
+        int len = s21_strlen_local(buffer);
 
-          format++;
-        
-       } else if (fmt.specifier == 'f') {
-          double value = va_arg(args, double);
+        if (fmt.plus && value >= 0) {
+          len++;
+        } else if (fmt.space && value >= 0) {
+          len++;
+        }
 
-          char buffer[128];
-          s21_double_to_str(value, buffer, fmt.precision);
+        while (!fmt.minus && len < fmt.width) {
+          *str++ = ' ';
+          len++;
+        }
 
-          char *p = buffer;
+        if (fmt.plus && value >= 0) {
+          *str++ = '+';
+        } else if (fmt.space && value >= 0) {
+          *str++ = ' ';
+        }
 
-         while (*p) {
+        char *p = buffer;
+
+        while (*p) {
+          *str++ = *p++;
+        }
+
+        while (fmt.minus && len < fmt.width) {
+          *str++ = ' ';
+          len++;
+        }
+
+        format++;
+
+      } else if (fmt.specifier == 'u') {
+        unsigned int value = va_arg(args, unsigned int);
+
+        char buffer[32];
+        s21_uint_to_str(value, buffer);
+        if (fmt.precision > 0) {
+          s21_add_leading_zeros(buffer, fmt.precision);
+        }
+
+        char *p = buffer;
+
+        while (*p) {
           *str++ = *p++;
         }
 
         format++;
-        
-       }
+
+      } else if (fmt.specifier == 'f') {
+        double value = va_arg(args, double);
+
+        char buffer[128];
+        s21_double_to_str(value, buffer, fmt.precision);
+
+        char *p = buffer;
+
+        while (*p) {
+          *str++ = *p++;
+        }
+
+        format++;
+      }
 
     } else {
       *str++ = *format++;
@@ -771,4 +755,3 @@ if (fmt.length == 'h') {
 
   return (int)(str - start);
 }
-

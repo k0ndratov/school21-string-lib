@@ -15,7 +15,6 @@ typedef struct {
   int minus;
   int plus;
   int space;
-  
 
   int width;
   int precision;
@@ -43,4 +42,4 @@ char *s21_strstr(const char *haystack, const char *needle);
 char *s21_strtok(char *str, const char *delim);
 char *s21_strerror(int errnum);
 
-#endif   // S21_STRING_H
+#endif  // S21_STRING_H

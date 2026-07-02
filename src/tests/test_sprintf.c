@@ -159,6 +159,61 @@ START_TEST(test_width_d) {
 }
 END_TEST
 
+START_TEST(test_short_d) {
+  char s1[128];
+  char s2[128];
+
+  short value = -123;
+
+  int r1 = sprintf(s1, "%hd", value);
+  int r2 = s21_sprintf(s2, "%hd", value);
+
+  ck_assert_int_eq(r1, r2);
+  ck_assert_str_eq(s1, s2);
+}
+END_TEST
+
+START_TEST(test_long_d) {
+  char s1[128];
+  char s2[128];
+
+  long value = 123456789L;
+
+  int r1 = sprintf(s1, "%ld", value);
+  int r2 = s21_sprintf(s2, "%ld", value);
+
+  ck_assert_int_eq(r1, r2);
+  ck_assert_str_eq(s1, s2);
+}
+END_TEST
+
+START_TEST(test_precision_d) {
+  char s1[128];
+  char s2[128];
+
+  int value = 42;
+
+  int r1 = sprintf(s1, "%.5d", value);
+  int r2 = s21_sprintf(s2, "%.5d", value);
+
+  ck_assert_int_eq(r1, r2);
+  ck_assert_str_eq(s1, s2);
+}
+END_TEST
+
+START_TEST(test_precision_u) {
+  char s1[128];
+  char s2[128];
+
+  unsigned int value = 42;
+
+  int r1 = sprintf(s1, "%.5u", value);
+  int r2 = s21_sprintf(s2, "%.5u", value);
+
+  ck_assert_int_eq(r1, r2);
+  ck_assert_str_eq(s1, s2);
+}
+END_TEST
 
 Suite *sprintf_suite(void) {
   Suite *suite = suite_create("s21_sprintf");
@@ -177,6 +232,10 @@ Suite *sprintf_suite(void) {
   tcase_add_test(tc, test_float_fraction);
   tcase_add_test(tc, test_precision_parse);
   tcase_add_test(tc, test_width_d);
+  tcase_add_test(tc, test_short_d);
+  tcase_add_test(tc, test_long_d);
+  tcase_add_test(tc, test_precision_d);
+  tcase_add_test(tc, test_precision_u);
 
   suite_add_tcase(suite, tc);
 

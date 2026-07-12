@@ -6,36 +6,28 @@
 START_TEST(test_memchr_found) {
   char str[] = "Hello";
 
-  ck_assert_ptr_eq(
-      s21_memchr(str, 'l', 5),
-      memchr(str, 'l', 5));
+  ck_assert_ptr_eq(s21_memchr(str, 'l', 5), memchr(str, 'l', 5));
 }
 END_TEST
 
 START_TEST(test_memchr_not_found) {
   char str[] = "Hello";
 
-  ck_assert_ptr_eq(
-      s21_memchr(str, 'x', 5),
-      memchr(str, 'x', 5));
+  ck_assert_ptr_eq(s21_memchr(str, 'x', 5), memchr(str, 'x', 5));
 }
 END_TEST
 
 START_TEST(test_memchr_zero_length) {
   char str[] = "Hello";
 
-  ck_assert_ptr_eq(
-      s21_memchr(str, 'H', 0),
-      memchr(str, 'H', 0));
+  ck_assert_ptr_eq(s21_memchr(str, 'H', 0), memchr(str, 'H', 0));
 }
 END_TEST
 
 START_TEST(test_memchr_null_char) {
   char str[] = "Hello";
 
-  ck_assert_ptr_eq(
-      s21_memchr(str, '\0', 6),
-      memchr(str, '\0', 6));
+  ck_assert_ptr_eq(s21_memchr(str, '\0', 6), memchr(str, '\0', 6));
 }
 END_TEST
 

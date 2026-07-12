@@ -15,8 +15,7 @@ START_TEST(test_strncmp_less) {
   char s1[] = "Hello";
   char s2[] = "World";
 
-  ck_assert_int_eq((s21_strncmp(s1, s2, 5) < 0),
-                   (strncmp(s1, s2, 5) < 0));
+  ck_assert_int_eq((s21_strncmp(s1, s2, 5) < 0), (strncmp(s1, s2, 5) < 0));
 }
 END_TEST
 
@@ -24,8 +23,7 @@ START_TEST(test_strncmp_greater) {
   char s1[] = "World";
   char s2[] = "Hello";
 
-  ck_assert_int_eq((s21_strncmp(s1, s2, 5) > 0),
-                   (strncmp(s1, s2, 5) > 0));
+  ck_assert_int_eq((s21_strncmp(s1, s2, 5) > 0), (strncmp(s1, s2, 5) > 0));
 }
 END_TEST
 
@@ -41,8 +39,7 @@ START_TEST(test_strncmp_prefix) {
   char s1[] = "Hello";
   char s2[] = "Help";
 
-  ck_assert_int_eq((s21_strncmp(s1, s2, 3) == 0),
-                   (strncmp(s1, s2, 3) == 0));
+  ck_assert_int_eq((s21_strncmp(s1, s2, 3) == 0), (strncmp(s1, s2, 3) == 0));
 }
 END_TEST
 

@@ -3,9 +3,7 @@
 
 #include "../s21_string.h"
 
-START_TEST(test_strlen_empty) {
-  ck_assert_uint_eq(s21_strlen(""), strlen(""));
-}
+START_TEST(test_strlen_empty) { ck_assert_uint_eq(s21_strlen(""), strlen("")); }
 END_TEST
 
 START_TEST(test_strlen_word) {

@@ -21,6 +21,9 @@ typedef struct {
   int width;
   int precision;
 
+  int width_star;
+  int prec_star;
+
   char length;
   char specifier;
 } s21_format;

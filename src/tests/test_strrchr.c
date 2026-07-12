@@ -6,40 +6,35 @@
 START_TEST(test_strrchr_found) {
   char str[] = "Hello";
 
-  ck_assert_ptr_eq(s21_strrchr(str, 'l'),
-                   strrchr(str, 'l'));
+  ck_assert_ptr_eq(s21_strrchr(str, 'l'), strrchr(str, 'l'));
 }
 END_TEST
 
 START_TEST(test_strrchr_first) {
   char str[] = "Hello";
 
-  ck_assert_ptr_eq(s21_strrchr(str, 'H'),
-                   strrchr(str, 'H'));
+  ck_assert_ptr_eq(s21_strrchr(str, 'H'), strrchr(str, 'H'));
 }
 END_TEST
 
 START_TEST(test_strrchr_not_found) {
   char str[] = "Hello";
 
-  ck_assert_ptr_eq(s21_strrchr(str, 'x'),
-                   strrchr(str, 'x'));
+  ck_assert_ptr_eq(s21_strrchr(str, 'x'), strrchr(str, 'x'));
 }
 END_TEST
 
 START_TEST(test_strrchr_null) {
   char str[] = "Hello";
 
-  ck_assert_ptr_eq(s21_strrchr(str, '\0'),
-                   strrchr(str, '\0'));
+  ck_assert_ptr_eq(s21_strrchr(str, '\0'), strrchr(str, '\0'));
 }
 END_TEST
 
 START_TEST(test_strrchr_last_occurrence) {
   char str[] = "abacada";
 
-  ck_assert_ptr_eq(s21_strrchr(str, 'a'),
-                   strrchr(str, 'a'));
+  ck_assert_ptr_eq(s21_strrchr(str, 'a'), strrchr(str, 'a'));
 }
 END_TEST
 

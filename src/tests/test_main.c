@@ -17,13 +17,14 @@ Suite *strstr_suite(void);
 Suite *strtok_suite(void);
 Suite *strerror_suite(void);
 Suite *sprintf_suite(void);
+Suite *sscanf_suite(void);
+Suite *special_suite(void);
 
 int main(void) {
   int failed;
 
   Suite *suite = strlen_suite();
   Suite *suite2 = memset_suite();
-  
 
   SRunner *runner = srunner_create(suite);
   srunner_add_suite(runner, suite2);
@@ -69,6 +70,12 @@ int main(void) {
 
   Suite *suite16 = sprintf_suite();
   srunner_add_suite(runner, suite16);
+
+  Suite *suite17 = sscanf_suite();
+  srunner_add_suite(runner, suite17);
+
+  Suite *suite18 = special_suite();
+  srunner_add_suite(runner, suite18);
 
   srunner_run_all(runner, CK_NORMAL);
 

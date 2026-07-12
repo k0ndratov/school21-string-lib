@@ -215,6 +215,124 @@ START_TEST(test_precision_u) {
 }
 END_TEST
 
+#define CK_CMP(fmt, ...)                        \
+  do {                                          \
+    char s1[512];                               \
+    char s2[512];                               \
+    int r1 = s21_sprintf(s1, fmt, __VA_ARGS__); \
+    int r2 = sprintf(s2, fmt, __VA_ARGS__);     \
+    ck_assert_int_eq(r1, r2);                   \
+    ck_assert_str_eq(s1, s2);                   \
+  } while (0)
+
+START_TEST(test_octal) {
+  CK_CMP("%o", 255);
+  CK_CMP("%o", 0);
+  CK_CMP("%#o", 255);
+  CK_CMP("%.5o", 8);
+  CK_CMP("%#08o", 255);
+  CK_CMP("%lo", 123456789UL);
+}
+END_TEST
+
+START_TEST(test_hex) {
+  CK_CMP("%x", 255);
+  CK_CMP("%X", 255);
+  CK_CMP("%#x", 255);
+  CK_CMP("%#X", 255);
+  CK_CMP("%#x", 0);
+  CK_CMP("%.5x", 255);
+  CK_CMP("%#010x", 255);
+  CK_CMP("%lx", 4294967296UL);
+}
+END_TEST
+
+START_TEST(test_pointer) {
+  int v = 5;
+  char s1[64];
+  char s2[64];
+  int r1 = s21_sprintf(s1, "%p", (void *)&v);
+  int r2 = sprintf(s2, "%p", (void *)&v);
+  ck_assert_int_eq(r1, r2);
+  ck_assert_str_eq(s1, s2);
+  CK_CMP("%p", (void *)0);
+}
+END_TEST
+
+START_TEST(test_scientific) {
+  CK_CMP("%e", 12345.678);
+  CK_CMP("%E", 12345.678);
+  CK_CMP("%.2e", 12345.678);
+  CK_CMP("%.0e", 12345.678);
+  CK_CMP("%e", 0.0);
+  CK_CMP("%15.3e", 1234.5);
+  CK_CMP("%-15.3e", 1234.5);
+  CK_CMP("%+e", 1234.5);
+  CK_CMP("%e", 1e300);
+}
+END_TEST
+
+START_TEST(test_general) {
+  CK_CMP("%g", 100000.0);
+  CK_CMP("%g", 1000000.0);
+  CK_CMP("%g", 0.0001);
+  CK_CMP("%g", 0.00001);
+  CK_CMP("%g", 123.456);
+  CK_CMP("%G", 0.00001234);
+  CK_CMP("%.10g", 3.14159265358979);
+  CK_CMP("%#g", 1.5);
+}
+END_TEST
+
+START_TEST(test_star) {
+  CK_CMP("%*d", 8, 42);
+  CK_CMP("%-*d", 8, 42);
+  CK_CMP("%.*f", 3, 3.14159);
+  CK_CMP("%*.*f", 10, 2, 3.14159);
+  CK_CMP("%*d", -8, 42);
+}
+END_TEST
+
+START_TEST(test_long_double) {
+  CK_CMP("%Lf", (long double)3.14159265358979L);
+  CK_CMP("%.2Le", (long double)12345.678L);
+  CK_CMP("%Lg", (long double)0.0001L);
+}
+END_TEST
+
+START_TEST(test_harden_width) {
+  CK_CMP("%10u", 42u);
+  CK_CMP("%-10u", 42u);
+  CK_CMP("%010u", 42u);
+  CK_CMP("%10f", 3.14);
+  CK_CMP("%-10f", 3.14);
+  CK_CMP("%010f", 3.14);
+  CK_CMP("%+10.2f", 3.14);
+}
+END_TEST
+
+START_TEST(test_harden_long) {
+  CK_CMP("%ld", 9999999999L);
+  CK_CMP("%ld", -9999999999L);
+  CK_CMP("%lu", 9999999999UL);
+}
+END_TEST
+
+START_TEST(test_harden_big_double) {
+  CK_CMP("%.2f", 3000000000.5);
+  CK_CMP("%.0f", 12345678901.0);
+}
+END_TEST
+
+START_TEST(test_harden_edge) {
+  CK_CMP("%.0d", 0);
+  CK_CMP("%.0u", 0);
+  CK_CMP("%5.0d", 0);
+  CK_CMP("%f", -0.0);
+  CK_CMP("%.1f", -0.0);
+}
+END_TEST
+
 Suite *sprintf_suite(void) {
   Suite *suite = suite_create("s21_sprintf");
   TCase *tc = tcase_create("Core");
@@ -236,6 +354,17 @@ Suite *sprintf_suite(void) {
   tcase_add_test(tc, test_long_d);
   tcase_add_test(tc, test_precision_d);
   tcase_add_test(tc, test_precision_u);
+  tcase_add_test(tc, test_octal);
+  tcase_add_test(tc, test_hex);
+  tcase_add_test(tc, test_pointer);
+  tcase_add_test(tc, test_scientific);
+  tcase_add_test(tc, test_general);
+  tcase_add_test(tc, test_star);
+  tcase_add_test(tc, test_long_double);
+  tcase_add_test(tc, test_harden_width);
+  tcase_add_test(tc, test_harden_long);
+  tcase_add_test(tc, test_harden_big_double);
+  tcase_add_test(tc, test_harden_edge);
 
   suite_add_tcase(suite, tc);
 

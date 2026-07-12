@@ -4,8 +4,8 @@ CFLAGS = -Wall -Wextra -Werror -std=c11
 GCOV_FLAGS = --coverage
 CHECK_FLAGS = $(shell pkg-config --cflags --libs check)
 
-SRC = s21_string.c
-OBJ = s21_string.o
+SRC = s21_string.c s21_sscanf.c s21_special.c
+OBJ = s21_string.o s21_sscanf.o s21_special.o
 
 TESTS = \
 	tests/test_main.c \
@@ -25,6 +25,8 @@ TESTS = \
 	tests/test_strtok.c \
 	tests/test_strerror.c \
 	tests/test_sprintf.c \
+	tests/test_sscanf.c \
+	tests/test_special.c \
 
 all: s21_string.a
 
@@ -44,7 +46,7 @@ gcov_report:
 	./test
 	lcov -t "s21_string" -o coverage.info -c -d .
 	genhtml coverage.info -o report
-	xdg-open report/index.html
+	-xdg-open report/index.html 2>/dev/null || true
 
 clean:
 	rm -f *.o *.a test *.gcda *.gcno coverage.info

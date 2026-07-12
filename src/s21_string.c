@@ -508,6 +508,8 @@ static void s21_parse_format(const char **format, s21_format *f) {
   f->minus = 0;
   f->plus = 0;
   f->space = 0;
+  f->hash = 0;
+  f->zero = 0;
   f->width = 0;
   f->precision = -1;
   f->length = '\0';

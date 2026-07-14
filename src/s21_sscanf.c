@@ -212,8 +212,8 @@ static void scan_float(scan_t *st, fmt_t *f) {
     used++;
     while (used < w && *p >= '0' && *p <= '9') {
       if (bi < cap) {
-      buf[bi++] = *p;
-    }
+        buf[bi++] = *p;
+      }
       p++;
       used++;
       digits++;
@@ -230,16 +230,16 @@ static void scan_float(scan_t *st, fmt_t *f) {
     used++;
     if (used < w && (*p == '+' || *p == '-')) {
       if (bi < cap) {
-      buf[bi++] = *p;
-    }
+        buf[bi++] = *p;
+      }
       p++;
       used++;
     }
     int edig = 0;
     while (used < w && *p >= '0' && *p <= '9') {
       if (bi < cap) {
-      buf[bi++] = *p;
-    }
+        buf[bi++] = *p;
+      }
       p++;
       used++;
       edig++;

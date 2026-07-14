@@ -186,25 +186,34 @@ static void scan_float(scan_t *st, fmt_t *f) {
   int used = 0;
   int digits = 0;
   char buf[512];
+  const int cap = (int)sizeof(buf) - 1;
   int bi = 0;
 
   if (used < w && (*p == '+' || *p == '-')) {
-    buf[bi++] = *p;
+    if (bi < cap) {
+      buf[bi++] = *p;
+    }
     p++;
     used++;
   }
   while (used < w && *p >= '0' && *p <= '9') {
-    buf[bi++] = *p;
+    if (bi < cap) {
+      buf[bi++] = *p;
+    }
     p++;
     used++;
     digits++;
   }
   if (used < w && *p == '.') {
-    buf[bi++] = *p;
+    if (bi < cap) {
+      buf[bi++] = *p;
+    }
     p++;
     used++;
     while (used < w && *p >= '0' && *p <= '9') {
+      if (bi < cap) {
       buf[bi++] = *p;
+    }
       p++;
       used++;
       digits++;
@@ -214,17 +223,23 @@ static void scan_float(scan_t *st, fmt_t *f) {
     int save_bi = bi;
     const char *save_p = p;
     int save_used = used;
-    buf[bi++] = *p;
+    if (bi < cap) {
+      buf[bi++] = *p;
+    }
     p++;
     used++;
     if (used < w && (*p == '+' || *p == '-')) {
+      if (bi < cap) {
       buf[bi++] = *p;
+    }
       p++;
       used++;
     }
     int edig = 0;
     while (used < w && *p >= '0' && *p <= '9') {
+      if (bi < cap) {
       buf[bi++] = *p;
+    }
       p++;
       used++;
       edig++;

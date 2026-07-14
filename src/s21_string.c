@@ -1,6 +1,7 @@
 #include "s21_string.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 
 static char error_buffer[128];
 
@@ -866,13 +867,19 @@ static int s21_format_signed(char *out, va_list args, s21_format *f) {
     mag = (unsigned long long)value;
   }
 
-  char digits[1024];
+  size_t dcap = (f->precision > 0 ? (size_t)f->precision : 0) + 64;
+  char *digits = malloc(dcap);
+  if (digits == S21_NULL) {
+    return 0;
+  }
   s21_utoa_base(mag, digits, 10, 0);
   s21_apply_int_precision(digits, f->precision);
 
   const char *sign = neg ? "-" : (f->plus ? "+" : (f->space ? " " : ""));
 
-  return s21_build_num_field(out, sign, "", digits, f, f->precision < 0);
+  int written = s21_build_num_field(out, sign, "", digits, f, f->precision < 0);
+  free(digits);
+  return written;
 }
 
 static int s21_format_unsigned(char *out, va_list args, s21_format *f) {
@@ -888,7 +895,11 @@ static int s21_format_unsigned(char *out, va_list args, s21_format *f) {
     upper = (f->specifier == 'X');
   }
 
-  char digits[1024];
+  size_t dcap = (f->precision > 0 ? (size_t)f->precision : 0) + 64;
+  char *digits = malloc(dcap);
+  if (digits == S21_NULL) {
+    return 0;
+  }
   s21_utoa_base(value, digits, base, upper);
   s21_apply_int_precision(digits, f->precision);
 
@@ -901,7 +912,10 @@ static int s21_format_unsigned(char *out, va_list args, s21_format *f) {
     prefix[2] = '\0';
   }
 
-  return s21_build_num_field(out, "", prefix, digits, f, f->precision < 0);
+  int written =
+      s21_build_num_field(out, "", prefix, digits, f, f->precision < 0);
+  free(digits);
+  return written;
 }
 
 static int s21_format_pointer(char *out, va_list args, s21_format *f) {
@@ -930,7 +944,11 @@ static int s21_format_float(char *out, va_list args, s21_format *f) {
   long double mag = neg ? -value : value;
   int prec = f->precision < 0 ? 6 : f->precision;
 
-  char digits[600];
+  size_t dcap = (prec > 0 ? (size_t)prec : 0) + 64;
+  char *digits = malloc(dcap);
+  if (digits == S21_NULL) {
+    return 0;
+  }
 
   if (f->specifier == 'f') {
     s21_build_fixed(mag, prec, f->hash, digits);
@@ -942,7 +960,9 @@ static int s21_format_float(char *out, va_list args, s21_format *f) {
 
   const char *sign = neg ? "-" : (f->plus ? "+" : (f->space ? " " : ""));
 
-  return s21_build_num_field(out, sign, "", digits, f, !f->minus);
+  int written = s21_build_num_field(out, sign, "", digits, f, !f->minus);
+  free(digits);
+  return written;
 }
 
 static char *s21_format_char(char *str, va_list args, s21_format *f) {
@@ -1034,7 +1054,13 @@ int s21_sprintf(char *str, const char *format, ...) {
     }
 
     char spec = fmt.specifier;
-    char out[2048];
+    size_t width_cap = fmt.width > 0 ? (size_t)fmt.width : 0;
+    size_t prec_cap = fmt.precision > 0 ? (size_t)fmt.precision : 0;
+    char *out = malloc(width_cap + prec_cap + 128);
+    if (out == S21_NULL) {
+      va_end(args);
+      return -1;
+    }
     int wrote = 0;
 
     if (spec == '%') {
@@ -1064,6 +1090,8 @@ int s21_sprintf(char *str, const char *format, ...) {
     for (int i = 0; i < wrote; i++) {
       *str++ = out[i];
     }
+
+    free(out);
 
     if (spec) {
       format++;

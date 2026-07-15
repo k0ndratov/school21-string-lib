@@ -789,11 +789,12 @@ static void s21_build_fixed(long double v, int precision, int hash, char *out) {
 
   int guard = frac_digits[precision] - '0';
   int has_more = frac > 0.0L;
-  int last_kept =
-      (precision > 0) ? (frac_digits[precision - 1] - '0') : (ip_digits[ip_n - 1] - '0');
+  int last_kept = (precision > 0) ? (frac_digits[precision - 1] - '0')
+                                  : (ip_digits[ip_n - 1] - '0');
 
   if (s21_round_up_half_even(guard, has_more, last_kept)) {
-    int carry = (precision > 0) ? s21_digits_add_one(frac_digits, precision) : 1;
+    int carry =
+        (precision > 0) ? s21_digits_add_one(frac_digits, precision) : 1;
 
     if (carry && s21_digits_add_one(ip_digits, ip_n)) {
       s21_shift_right(ip_digits, 1, '1');
@@ -826,11 +827,14 @@ static void s21_build_sci(long double v, int precision, char expchar, int hash,
   int exp = 0;
 
   if (v != 0) {
-    while (v >= 10.0L) {
+    int guard = S21_MAX_INT_DIGITS;
+
+    while (v >= 10.0L && guard-- > 0) {
       v /= 10.0L;
       exp++;
     }
-    while (v < 1.0L) {
+    guard = S21_MAX_INT_DIGITS;
+    while (v < 1.0L && guard-- > 0) {
       v *= 10.0L;
       exp--;
     }
@@ -860,7 +864,8 @@ static void s21_build_sci(long double v, int precision, char expchar, int hash,
   int last_kept = (precision > 0) ? (frac_digits[precision - 1] - '0') : lead;
 
   if (s21_round_up_half_even(guard, has_more, last_kept)) {
-    int carry = (precision > 0) ? s21_digits_add_one(frac_digits, precision) : 1;
+    int carry =
+        (precision > 0) ? s21_digits_add_one(frac_digits, precision) : 1;
 
     if (carry) {
       lead++;
@@ -928,11 +933,14 @@ static void s21_build_g(long double v, int precision, int upper, int hash,
   long double m = v;
 
   if (m != 0) {
-    while (m >= 10.0L) {
+    int guard = S21_MAX_INT_DIGITS;
+
+    while (m >= 10.0L && guard-- > 0) {
       m /= 10.0L;
       exp++;
     }
-    while (m < 1.0L) {
+    guard = S21_MAX_INT_DIGITS;
+    while (m < 1.0L && guard-- > 0) {
       m *= 10.0L;
       exp--;
     }
@@ -1190,19 +1198,28 @@ static int s21_format_pointer(char *out, va_list args, s21_format *f) {
 
 static int s21_format_float(char *out, va_list args, s21_format *f) {
   long double value;
+  int is_nan;
+  int is_inf;
 
   if (f->length == 'L') {
     value = va_arg(args, long double);
+    is_nan = isnan(value);
+    is_inf = isinf(value);
   } else {
-    value = va_arg(args, double);
+    /* Classify on the narrower double *before* widening: some platforms'
+     * isnan/isinf are less reliable on long double than on double. */
+    double dvalue = va_arg(args, double);
+    is_nan = isnan(dvalue);
+    is_inf = isinf(dvalue);
+    value = dvalue;
   }
 
-  if (isnan(value) || isinf(value)) {
+  if (is_nan || is_inf) {
     int neg = signbit(value);
     int upper_word = (f->specifier == 'E' || f->specifier == 'G');
     const char *word;
 
-    if (isnan(value)) {
+    if (is_nan) {
       word = upper_word ? "NAN" : "nan";
     } else {
       word = upper_word ? "INF" : "inf";
@@ -1329,7 +1346,15 @@ int s21_sprintf(char *str, const char *format, ...) {
     char spec = fmt.specifier;
     size_t width_cap = fmt.width > 0 ? (size_t)fmt.width : 0;
     size_t prec_cap = fmt.precision > 0 ? (size_t)fmt.precision : 0;
-    char *out = malloc(width_cap + prec_cap + 128);
+    /* f/e/g/G can format long double magnitudes with thousands of integer
+     * digits (see S21_MAX_INT_DIGITS); this buffer has to be large enough
+     * to hold that, not just width/precision. */
+    size_t float_cap =
+        (spec == 'f' || spec == 'e' || spec == 'E' || spec == 'g' ||
+         spec == 'G')
+            ? S21_MAX_INT_DIGITS
+            : 0;
+    char *out = malloc(width_cap + prec_cap + float_cap + 128);
     if (out == S21_NULL) {
       va_end(args);
       return -1;

@@ -3,6 +3,8 @@
 
 #include "s21_string_internal.h"
 
+// Превращает число в текстовые цифры, используя заданную систему
+// счисления (10, 16...).
 static void s21_utoa_base(unsigned long long value, char* buffer, int base,
                           int upper) {
   const char* digits = upper ? "0123456789ABCDEF" : "0123456789abcdef";
@@ -27,6 +29,8 @@ static void s21_utoa_base(unsigned long long value, char* buffer, int base,
   buffer[pos] = '\0';
 }
 
+// Добавляет нули перед цифрами, если числу нужно больше цифр (это и
+// есть «точность» для целых чисел вроде %d).
 static void s21_apply_int_precision(char* digits, int precision) {
   if (precision < 0) {
     return;
@@ -44,10 +48,14 @@ static void s21_apply_int_precision(char* digits, int precision) {
   }
 }
 
+// Проверяет, отрицательное ли v. Также учитывает особый случай
+// отрицательного нуля.
 static int s21_ld_is_neg(long double v) {
   return v < 0 || (v == 0 && (1.0L / v) < 0);
 }
 
+// Собирает вместе знак, префикс и цифры, добавляя пробелы или нули,
+// чтобы результат соответствовал нужной ширине.
 static int s21_build_num_field(char* out, const char* sign, const char* prefix,
                                const char* digits, const s21_format* f,
                                int zero_ok) {
@@ -96,6 +104,8 @@ static int s21_build_num_field(char* out, const char* sign, const char* prefix,
   return pos;
 }
 
+// Считывает флаги, ширину, точность и букву типа из формата %
+// (например, часть «05.2f» в «%05.2f»).
 static void s21_parse_format(const char** format, s21_format* f) {
   f->minus = 0;
   f->plus = 0;
@@ -171,6 +181,8 @@ static void s21_parse_format(const char** format, s21_format* f) {
   f->specifier = **format;
 }
 
+// Считывает знаковый числовой аргумент из списка переменных аргументов,
+// используя нужный размер (short, int или long) по букве длины формата.
 static long long s21_read_signed(va_list args, char length) {
   long long value;
 
@@ -185,6 +197,7 @@ static long long s21_read_signed(va_list args, char length) {
   return value;
 }
 
+// То же самое, что s21_read_signed, но для беззнаковых чисел.
 static unsigned long long s21_read_unsigned(va_list args, char length) {
   unsigned long long value;
 
@@ -199,6 +212,7 @@ static unsigned long long s21_read_unsigned(va_list args, char length) {
   return value;
 }
 
+// Превращает аргумент %d или %i в текст.
 static int s21_format_signed(char* out, va_list args, s21_format* f) {
   long long value = s21_read_signed(args, f->length);
   int neg = value < 0;
@@ -225,6 +239,7 @@ static int s21_format_signed(char* out, va_list args, s21_format* f) {
   return written;
 }
 
+// Превращает аргумент %u, %o, %x или %X в текст.
 static int s21_format_unsigned(char* out, va_list args, s21_format* f) {
   unsigned long long value = s21_read_unsigned(args, f->length);
   int base = 10;
@@ -261,6 +276,7 @@ static int s21_format_unsigned(char* out, va_list args, s21_format* f) {
   return written;
 }
 
+// Превращает аргумент %p (адрес указателя) в текст.
 static int s21_format_pointer(char* out, va_list args, s21_format* f) {
   void* ptr = va_arg(args, void*);
 
@@ -274,6 +290,8 @@ static int s21_format_pointer(char* out, va_list args, s21_format* f) {
   return s21_build_num_field(out, "", "0x", digits, f, f->precision < 0);
 }
 
+// Превращает аргумент %f, %e, %g в текст. Также обрабатывает особые
+// значения вроде бесконечности и «не число».
 static int s21_format_float(char* out, va_list args, s21_format* f) {
   long double value;
   int is_nan;
@@ -331,6 +349,7 @@ static int s21_format_float(char* out, va_list args, s21_format* f) {
   return written;
 }
 
+// Превращает аргумент %c в текст, добавляя пробелы для нужной ширины.
 static char* s21_format_char(char* str, va_list args, s21_format* f) {
   char ch = (char)va_arg(args, int);
   int len = 1;
@@ -350,6 +369,7 @@ static char* s21_format_char(char* str, va_list args, s21_format* f) {
   return str;
 }
 
+// Превращает аргумент %s в текст, применяя правила ширины и точности.
 static char* s21_format_string(char* str, va_list args, s21_format* f) {
   char* src = va_arg(args, char*);
 
@@ -386,6 +406,8 @@ static char* s21_format_string(char* str, va_list args, s21_format* f) {
   return str;
 }
 
+// Формирует строку по формату в str, точно как стандартная функция
+// sprintf. Это главная функция этого файла.
 int s21_sprintf(char* str, const char* format, ...) {
   va_list args;
   va_start(args, format);

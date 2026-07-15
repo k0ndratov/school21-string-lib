@@ -3,6 +3,8 @@
 
 #include "s21_string_internal.h"
 
+// Считает символы в строке. То же самое, что s21_strlen, но используется
+// только внутри этого файла.
 int s21_strlen_local(const char* str) {
   int len = 0;
 
@@ -13,6 +15,8 @@ int s21_strlen_local(const char* str) {
   return len;
 }
 
+// Сдвигает текст в buffer вправо на count позиций и заполняет
+// освободившееся место в начале символом fill.
 void s21_shift_right(char* buffer, int count, char fill) {
   int len = s21_strlen_local(buffer);
 
@@ -25,6 +29,8 @@ void s21_shift_right(char* buffer, int count, char fill) {
   }
 }
 
+// Убирает лишние нули в конце числа, например превращает «1.5000» в
+// «1.5» (а также убирает точку, если после неё ничего не остаётся).
 static void s21_strip_trailing_zeros(char* s) {
   int has_dot = 0;
   int epos = -1;
@@ -67,6 +73,8 @@ static void s21_strip_trailing_zeros(char* s) {
   s[w] = '\0';
 }
 
+// Получает цифры целой части (возможно, очень большого) дробного числа,
+// например «123» из 123.45.
 static int s21_extract_int_digits(long double ip, char* digits) {
   int n = 0;
 
@@ -100,6 +108,7 @@ static int s21_extract_int_digits(long double ip, char* digits) {
   return n;
 }
 
+// Получает цифры из части числа после точки, например «45» из 0.45.
 static void s21_extract_frac_digits(long double* frac, char* digits,
                                     int count) {
   for (int i = 0; i < count; i++) {
@@ -118,6 +127,9 @@ static void s21_extract_frac_digits(long double* frac, char* digits,
   }
 }
 
+// Решает, нужно ли округлить число вверх. Использует стандартное правило
+// «округление к чётному» для сложного случая, когда число ровно
+// посередине (например, 2.5 должно округляться до 2, а не до 3).
 static int s21_round_up_half_even(int next_digit, int has_more,
                                   int last_kept_digit) {
   int round_up;
@@ -135,7 +147,8 @@ static int s21_round_up_half_even(int next_digit, int has_more,
   return round_up;
 }
 
-
+// Прибавляет 1 к строке цифр, с переносом разряда, как при обычном
+// сложении в столбик (так «199» становится «200»).
 static int s21_digits_add_one(char* digits, int len) {
   int carry = 1;
 
@@ -153,6 +166,7 @@ static int s21_digits_add_one(char* digits, int len) {
   return carry;
 }
 
+// Строит текст для числа %f в обычной десятичной форме (например, 3.14).
 void s21_build_fixed(long double v, int precision, int hash, char* out) {
   long double ip_ld = floorl(v);
   long double frac = v - ip_ld;
@@ -203,6 +217,7 @@ void s21_build_fixed(long double v, int precision, int hash, char* out) {
   free(frac_digits);
 }
 
+// Строит текст для числа %e в научной форме (например, 3.14e+00).
 void s21_build_sci(long double v, int precision, char expchar, int hash,
                    char* out) {
   int exp = 0;
@@ -304,6 +319,8 @@ void s21_build_sci(long double v, int precision, char expchar, int hash,
   out[pos] = '\0';
 }
 
+// Строит текст для числа %g, выбирая ту форму (обычную или научную),
+// которая получается короче.
 void s21_build_g(long double v, int precision, int upper, int hash, char* out) {
   if (precision == 0) {
     precision = 1;

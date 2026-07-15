@@ -1,5 +1,6 @@
 #include "s21_string.h"
 
+// Считает, сколько символов в str, не считая завершающий нулевой символ.
 s21_size_t s21_strlen(const char* str) {
   s21_size_t len = 0;
 
@@ -10,6 +11,7 @@ s21_size_t s21_strlen(const char* str) {
   return len;
 }
 
+// Заполняет первые n байт памяти значением c.
 void* s21_memset(void* str, int c, s21_size_t n) {
   unsigned char* ptr = (unsigned char*)str;
   unsigned char value = (unsigned char)c;
@@ -21,6 +23,7 @@ void* s21_memset(void* str, int c, s21_size_t n) {
   return str;
 }
 
+// Копирует n байт данных из src в dest.
 void* s21_memcpy(void* dest, const void* src, s21_size_t n) {
   unsigned char* d = (unsigned char*)dest;
   const unsigned char* s = (const unsigned char*)src;
@@ -32,6 +35,7 @@ void* s21_memcpy(void* dest, const void* src, s21_size_t n) {
   return dest;
 }
 
+// Сравнивает первые n байт str1 и str2 между собой.
 int s21_memcmp(const void* str1, const void* str2, s21_size_t n) {
   const unsigned char* s1 = (const unsigned char*)str1;
   const unsigned char* s2 = (const unsigned char*)str2;
@@ -47,6 +51,7 @@ int s21_memcmp(const void* str1, const void* str2, s21_size_t n) {
   return result;
 }
 
+// Ищет байт c среди первых n байт памяти.
 void* s21_memchr(const void* str, int c, s21_size_t n) {
   const unsigned char* ptr = (const unsigned char*)str;
   void* result = S21_NULL;
@@ -60,6 +65,8 @@ void* s21_memchr(const void* str, int c, s21_size_t n) {
   return result;
 }
 
+// Копирует до n символов из src в dest. Если src короче n, оставшаяся
+// часть dest заполняется нулями.
 char* s21_strncpy(char* dest, const char* src, s21_size_t n) {
   s21_size_t i = 0;
 
@@ -76,6 +83,7 @@ char* s21_strncpy(char* dest, const char* src, s21_size_t n) {
   return dest;
 }
 
+// Добавляет до n символов из src в конец dest.
 char* s21_strncat(char* dest, const char* src, s21_size_t n) {
   s21_size_t dest_len = s21_strlen(dest);
   s21_size_t i = 0;
@@ -90,6 +98,7 @@ char* s21_strncat(char* dest, const char* src, s21_size_t n) {
   return dest;
 }
 
+// Ищет первое появление символа c в str.
 char* s21_strchr(const char* str, int c) {
   char* result = S21_NULL;
 
@@ -107,6 +116,7 @@ char* s21_strchr(const char* str, int c) {
   return result;
 }
 
+// Сравнивает до n символов str1 и str2 между собой.
 int s21_strncmp(const char* str1, const char* str2, s21_size_t n) {
   int result = 0;
   s21_size_t i = 0;
@@ -127,6 +137,7 @@ int s21_strncmp(const char* str1, const char* str2, s21_size_t n) {
   return result;
 }
 
+// Считает, сколько символов в начале str1 НЕ встречаются в str2.
 s21_size_t s21_strcspn(const char* str1, const char* str2) {
   s21_size_t count = 0;
 
@@ -151,6 +162,7 @@ s21_size_t s21_strcspn(const char* str1, const char* str2) {
   return count;
 }
 
+// Ищет первый символ в str1, который также встречается где-нибудь в str2.
 char* s21_strpbrk(const char* str1, const char* str2) {
   char* result = S21_NULL;
 
@@ -170,6 +182,7 @@ char* s21_strpbrk(const char* str1, const char* str2) {
   return result;
 }
 
+// Ищет ПОСЛЕДНЕЕ появление символа c в str.
 char* s21_strrchr(const char* str, int c) {
   char* result = S21_NULL;
 
@@ -187,6 +200,7 @@ char* s21_strrchr(const char* str, int c) {
   return result;
 }
 
+// Ищет первое место, где needle встречается внутри haystack.
 char* s21_strstr(const char* haystack, const char* needle) {
   char* result = S21_NULL;
 
@@ -211,6 +225,9 @@ char* s21_strstr(const char* haystack, const char* needle) {
   return result;
 }
 
+// Разбивает str на части (токены), используя символы из delim как
+// разделители. Вызовите функцию снова с NULL вместо str, чтобы получить
+// следующую часть.
 char* s21_strtok(char* str, const char* delim) {
   static char* next = S21_NULL;
 

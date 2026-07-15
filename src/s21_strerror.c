@@ -262,6 +262,8 @@ static const char* s21_errors_mac[] = {
 
 #define S21_ERRLIST_SIZE (sizeof(S21_ERRLIST) / sizeof(S21_ERRLIST[0]))
 
+// Формирует текст «Unknown error N» для номера ошибки, для которого нет
+// готового сообщения.
 static void s21_write_unknown_error(int errnum, char* out) {
   const char* prefix = "Unknown error ";
   int pos = 0;
@@ -299,6 +301,8 @@ static void s21_write_unknown_error(int errnum, char* out) {
   out[pos] = '\0';
 }
 
+// Возвращает короткое текстовое описание номера ошибки, например
+// «File exists».
 char* s21_strerror(int errnum) {
   char* result = error_buffer;
 

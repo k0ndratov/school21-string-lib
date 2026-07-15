@@ -24,15 +24,20 @@ typedef struct {
   char spec;
 } fmt_t;
 
+// Проверяет, является ли c пробелом, табуляцией, переводом строки или
+// похожим «пустым» символом.
 static int is_space(char c) {
   return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f' ||
          c == '\v';
 }
 
+// Продвигается вперёд по входным данным, пропуская пробелы и табуляции.
 static void skip_ws(scan_t *st) {
   while (*st->p && is_space(*st->p)) st->p++;
 }
 
+// Превращает символ-цифру ('0'-'9', 'a'-'f') в его числовое значение.
+// Возвращает -1, если c не цифра.
 static int digit_val(char c) {
   if (c >= '0' && c <= '9') return c - '0';
   if (c >= 'a' && c <= 'f') return c - 'a' + 10;
@@ -40,10 +45,14 @@ static int digit_val(char c) {
   return -1;
 }
 
+// Отмечает, что чтение не удалось, и запоминает, произошло ли это
+// из-за конца входных данных или из-за несовпадения текста с ожидаемым.
 static void set_fail(scan_t *st) {
   st->fail = (*st->p == '\0') ? FAIL_INPUT : FAIL_MATCH;
 }
 
+// Сохраняет число в переменную, которую передал вызывающий код,
+// используя нужный размер (short, int, long...) согласно формату.
 static void store_int(scan_t *st, fmt_t *f, unsigned long long v,
                       int is_signed) {
   switch (f->length) {
@@ -80,6 +89,7 @@ static void store_int(scan_t *st, fmt_t *f, unsigned long long v,
   }
 }
 
+// Считывает число %d, %i, %u, %o или %x из входного текста.
 static void scan_int(scan_t *st, fmt_t *f, int base, int is_signed) {
   skip_ws(st);
   int w = f->width > 0 ? f->width : INT_MAX;
@@ -132,6 +142,7 @@ static void scan_int(scan_t *st, fmt_t *f, int base, int is_signed) {
   }
 }
 
+// Считывает значение %p (адрес указателя) из входного текста.
 static void scan_ptr(scan_t *st, fmt_t *f) {
   skip_ws(st);
   int w = f->width > 0 ? f->width : INT_MAX;
@@ -164,6 +175,8 @@ static void scan_ptr(scan_t *st, fmt_t *f) {
   }
 }
 
+// Сохраняет дробное число в переменную, которую передал вызывающий код,
+// используя нужный размер (float, double или long double).
 static void store_float(scan_t *st, fmt_t *f, const char *buf) {
   long double v = strtold(buf, NULL);
   switch (f->length) {
@@ -179,6 +192,7 @@ static void store_float(scan_t *st, fmt_t *f, const char *buf) {
   }
 }
 
+// Считывает число %e, %f или %g из входного текста.
 static void scan_float(scan_t *st, fmt_t *f) {
   skip_ws(st);
   int w = f->width > 0 ? f->width : INT_MAX;
@@ -262,6 +276,8 @@ static void scan_float(scan_t *st, fmt_t *f) {
   }
 }
 
+// Считывает слово %s из входных данных, останавливаясь на пробеле или
+// лимите ширины.
 static void scan_str(scan_t *st, fmt_t *f) {
   skip_ws(st);
   if (*st->p == '\0') {
@@ -280,6 +296,7 @@ static void scan_str(scan_t *st, fmt_t *f) {
   if (!f->suppress) st->count++;
 }
 
+// Считывает один или несколько «сырых» символов для %c.
 static void scan_char(scan_t *st, fmt_t *f) {
   if (*st->p == '\0') {
     st->fail = FAIL_INPUT;
@@ -296,6 +313,8 @@ static void scan_char(scan_t *st, fmt_t *f) {
   if (!f->suppress) st->count++;
 }
 
+// Сохраняет, сколько символов было прочитано на данный момент. Это и
+// делает %n.
 static void scan_n(scan_t *st, fmt_t *f) {
   int consumed = (int)(st->p - st->base);
   if (f->suppress) return;
@@ -318,6 +337,8 @@ static void scan_n(scan_t *st, fmt_t *f) {
   }
 }
 
+// Проверяет, что во входных данных действительно стоит символ %,
+// для %%.
 static void scan_percent(scan_t *st) {
   skip_ws(st);
   if (*st->p == '%') {
@@ -327,6 +348,8 @@ static void scan_percent(scan_t *st) {
   }
 }
 
+// Считывает *, ширину, длину и букву типа из формата %
+// (например, часть «*5d» в «%*5d»).
 static void parse_fmt(const char **fp, fmt_t *f) {
   const char *p = *fp;
   f->suppress = 0;
@@ -366,6 +389,7 @@ static void parse_fmt(const char **fp, fmt_t *f) {
   *fp = p;
 }
 
+// Выбирает нужную функцию чтения на основе буквы типа в формате.
 static void dispatch(scan_t *st, fmt_t *f) {
   switch (f->spec) {
     case 'd':
@@ -412,6 +436,8 @@ static void dispatch(scan_t *st, fmt_t *f) {
   }
 }
 
+// Считывает значения из str по формату, точно как стандартная функция
+// sscanf. Это главная функция этого файла.
 int s21_sscanf(const char *str, const char *format, ...) {
   scan_t st;
   st.base = str;

@@ -1,8 +1,12 @@
+#if !defined(__APPLE__) && !defined(__MACH__)
+#include <features.h>
+#endif
+
 #include "s21_string.h"
 
 static char error_buffer[128];
 
-#if !defined(__APPLE__) && !defined(__MACH__)
+#if !defined(__APPLE__) && !defined(__MACH__) && defined(__GLIBC__)
 static const char* s21_errors_linux[] = {
     "Success",
     "Operation not permitted",
@@ -142,6 +146,143 @@ static const char* s21_errors_linux[] = {
 
 #endif
 
+#if !defined(__APPLE__) && !defined(__MACH__) && !defined(__GLIBC__)
+static const char* s21_errors_musl[] = {
+    "No error information",
+    "Operation not permitted",
+    "No such file or directory",
+    "No such process",
+    "Interrupted system call",
+    "I/O error",
+    "No such device or address",
+    "Argument list too long",
+    "Exec format error",
+    "Bad file descriptor",
+    "No child process",
+    "Resource temporarily unavailable",
+    "Out of memory",
+    "Permission denied",
+    "Bad address",
+    "Block device required",
+    "Resource busy",
+    "File exists",
+    "Cross-device link",
+    "No such device",
+    "Not a directory",
+    "Is a directory",
+    "Invalid argument",
+    "Too many open files in system",
+    "No file descriptors available",
+    "Not a tty",
+    "Text file busy",
+    "File too large",
+    "No space left on device",
+    "Invalid seek",
+    "Read-only file system",
+    "Too many links",
+    "Broken pipe",
+    "Domain error",
+    "Result not representable",
+    "Resource deadlock would occur",
+    "Filename too long",
+    "No locks available",
+    "Function not implemented",
+    "Directory not empty",
+    "Symbolic link loop",
+    "No error information",
+    "No message of desired type",
+    "Identifier removed",
+    "No error information",
+    "No error information",
+    "No error information",
+    "No error information",
+    "No error information",
+    "No error information",
+    "No error information",
+    "No error information",
+    "No error information",
+    "No error information",
+    "No error information",
+    "No error information",
+    "No error information",
+    "No error information",
+    "No error information",
+    "No error information",
+    "Device not a stream",
+    "No data available",
+    "Device timeout",
+    "Out of streams resources",
+    "No error information",
+    "No error information",
+    "No error information",
+    "Link has been severed",
+    "No error information",
+    "No error information",
+    "No error information",
+    "Protocol error",
+    "Multihop attempted",
+    "No error information",
+    "Bad message",
+    "Value too large for data type",
+    "No error information",
+    "File descriptor in bad state",
+    "No error information",
+    "No error information",
+    "No error information",
+    "No error information",
+    "No error information",
+    "No error information",
+    "Illegal byte sequence",
+    "No error information",
+    "No error information",
+    "No error information",
+    "Not a socket",
+    "Destination address required",
+    "Message too large",
+    "Protocol wrong type for socket",
+    "Protocol not available",
+    "Protocol not supported",
+    "Socket type not supported",
+    "Not supported",
+    "Protocol family not supported",
+    "Address family not supported by protocol",
+    "Address in use",
+    "Address not available",
+    "Network is down",
+    "Network unreachable",
+    "Connection reset by network",
+    "Connection aborted",
+    "Connection reset by peer",
+    "No buffer space available",
+    "Socket is connected",
+    "Socket not connected",
+    "Cannot send after socket shutdown",
+    "No error information",
+    "Operation timed out",
+    "Connection refused",
+    "Host is down",
+    "Host is unreachable",
+    "Operation already in progress",
+    "Operation in progress",
+    "Stale file handle",
+    "No error information",
+    "No error information",
+    "No error information",
+    "No error information",
+    "Remote I/O error",
+    "Quota exceeded",
+    "No medium found",
+    "Wrong medium type",
+    "Operation canceled",
+    "Required key not available",
+    "Key has expired",
+    "Key has been revoked",
+    "Key was rejected by service",
+    "Previous owner died",
+    "State not recoverable",
+};
+#endif
+
 #if defined(__APPLE__) || defined(__MACH__)
 static const char* s21_errors_mac[] = {
     "Undefined error: 0",
@@ -256,12 +397,15 @@ static const char* s21_errors_mac[] = {
 
 #if defined(__APPLE__) || defined(__MACH__)
 #define S21_ERRLIST s21_errors_mac
-#else
+#elif defined(__GLIBC__)
 #define S21_ERRLIST s21_errors_linux
+#else
+#define S21_ERRLIST s21_errors_musl
 #endif
 
 #define S21_ERRLIST_SIZE (sizeof(S21_ERRLIST) / sizeof(S21_ERRLIST[0]))
 
+#if defined(__APPLE__) || defined(__MACH__) || defined(__GLIBC__)
 // Формирует текст «Unknown error N» для номера ошибки, для которого нет
 // готового сообщения.
 static void s21_write_unknown_error(int errnum, char* out) {
@@ -300,6 +444,7 @@ static void s21_write_unknown_error(int errnum, char* out) {
 
   out[pos] = '\0';
 }
+#endif
 
 // Возвращает короткое текстовое описание номера ошибки, например
 // «File exists».
@@ -309,7 +454,11 @@ char* s21_strerror(int errnum) {
   if (errnum >= 0 && errnum < (int)S21_ERRLIST_SIZE) {
     result = (char*)S21_ERRLIST[errnum];
   } else {
+#if !defined(__APPLE__) && !defined(__MACH__) && !defined(__GLIBC__)
+    result = (char*)"No error information";
+#else
     s21_write_unknown_error(errnum, error_buffer);
+#endif
   }
 
   return result;

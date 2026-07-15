@@ -1,3 +1,6 @@
+#if !defined(__APPLE__) && !defined(__MACH__)
+#include <features.h>
+#endif
 #include <math.h>
 #include <stdlib.h>
 
@@ -281,7 +284,11 @@ static int s21_format_pointer(char* out, va_list args, s21_format* f) {
   void* ptr = va_arg(args, void*);
 
   if (ptr == S21_NULL) {
+#if !defined(__APPLE__) && !defined(__MACH__) && !defined(__GLIBC__)
+    return s21_build_num_field(out, "", "", "0", f, 0);
+#else
     return s21_build_num_field(out, "", "", "(nil)", f, 0);
+#endif
   }
 
   char digits[1024];

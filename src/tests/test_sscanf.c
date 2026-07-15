@@ -301,6 +301,106 @@ START_TEST(test_sscanf_plus_sign) {
 }
 END_TEST
 
+START_TEST(test_sscanf_hhu) {
+  unsigned char a1, b1;
+  int r1 = s21_sscanf("200", "%hhu", &a1);
+  int r2 = sscanf("200", "%hhu", &b1);
+  ck_assert_int_eq(r1, r2);
+  ck_assert_int_eq(a1, b1);
+}
+END_TEST
+
+START_TEST(test_sscanf_hu) {
+  unsigned short a1, b1;
+  int r1 = s21_sscanf("60000", "%hu", &a1);
+  int r2 = sscanf("60000", "%hu", &b1);
+  ck_assert_int_eq(r1, r2);
+  ck_assert_int_eq(a1, b1);
+}
+END_TEST
+
+START_TEST(test_sscanf_lu) {
+  unsigned long a1, b1;
+  int r1 = s21_sscanf("9999999999", "%lu", &a1);
+  int r2 = sscanf("9999999999", "%lu", &b1);
+  ck_assert_int_eq(r1, r2);
+  ck_assert_int_eq(a1, b1);
+}
+END_TEST
+
+START_TEST(test_sscanf_lld) {
+  long long a1, b1;
+  int r1 = s21_sscanf("-999999999999", "%lld", &a1);
+  int r2 = sscanf("-999999999999", "%lld", &b1);
+  ck_assert_int_eq(r1, r2);
+  ck_assert_int_eq(a1, b1);
+}
+END_TEST
+
+START_TEST(test_sscanf_llu) {
+  unsigned long long a1, b1;
+  int r1 = s21_sscanf("18446744073709551615", "%llu", &a1);
+  int r2 = sscanf("18446744073709551615", "%llu", &b1);
+  ck_assert_int_eq(r1, r2);
+  ck_assert_int_eq(a1, b1);
+}
+END_TEST
+
+START_TEST(test_sscanf_n_hh) {
+  int d1, d2;
+  signed char n1 = -1, n2 = -1;
+  int r1 = s21_sscanf("42abc", "%d%hhn", &d1, &n1);
+  int r2 = sscanf("42abc", "%d%hhn", &d2, &n2);
+  ck_assert_int_eq(r1, r2);
+  ck_assert_int_eq(n1, n2);
+}
+END_TEST
+
+START_TEST(test_sscanf_n_h) {
+  int d1, d2;
+  short n1 = -1, n2 = -1;
+  int r1 = s21_sscanf("42abc", "%d%hn", &d1, &n1);
+  int r2 = sscanf("42abc", "%d%hn", &d2, &n2);
+  ck_assert_int_eq(r1, r2);
+  ck_assert_int_eq(n1, n2);
+}
+END_TEST
+
+START_TEST(test_sscanf_n_l) {
+  int d1, d2;
+  long n1 = -1, n2 = -1;
+  int r1 = s21_sscanf("42abc", "%d%ln", &d1, &n1);
+  int r2 = sscanf("42abc", "%d%ln", &d2, &n2);
+  ck_assert_int_eq(r1, r2);
+  ck_assert_int_eq(n1, n2);
+}
+END_TEST
+
+START_TEST(test_sscanf_n_ll) {
+  int d1, d2;
+  long long n1 = -1, n2 = -1;
+  int r1 = s21_sscanf("42abc", "%d%lln", &d1, &n1);
+  int r2 = sscanf("42abc", "%d%lln", &d2, &n2);
+  ck_assert_int_eq(r1, r2);
+  ck_assert_int_eq(n1, n2);
+}
+END_TEST
+
+START_TEST(test_sscanf_n_suppress) {
+  /* gcc's format checker rejects "%*n" as a literal libc sscanf() format
+   * (-Werror=format=), so this checks s21_sscanf directly rather than
+   * diffing against libc. */
+  int d1;
+  int n1 = -1;
+
+  int r1 = s21_sscanf("42abc", "%d%*n", &d1);
+
+  ck_assert_int_eq(r1, 1);
+  ck_assert_int_eq(d1, 42);
+  ck_assert_int_eq(n1, -1);
+}
+END_TEST
+
 Suite *sscanf_suite(void) {
   Suite *s = suite_create("sscanf");
   TCase *tc = tcase_create("core");
@@ -337,6 +437,16 @@ Suite *sscanf_suite(void) {
   tcase_add_test(tc, test_sscanf_hhd);
   tcase_add_test(tc, test_sscanf_char_width);
   tcase_add_test(tc, test_sscanf_plus_sign);
+  tcase_add_test(tc, test_sscanf_hhu);
+  tcase_add_test(tc, test_sscanf_hu);
+  tcase_add_test(tc, test_sscanf_lu);
+  tcase_add_test(tc, test_sscanf_lld);
+  tcase_add_test(tc, test_sscanf_llu);
+  tcase_add_test(tc, test_sscanf_n_hh);
+  tcase_add_test(tc, test_sscanf_n_h);
+  tcase_add_test(tc, test_sscanf_n_l);
+  tcase_add_test(tc, test_sscanf_n_ll);
+  tcase_add_test(tc, test_sscanf_n_suppress);
 
   suite_add_tcase(s, tc);
   return s;

@@ -4,8 +4,8 @@ CFLAGS = -Wall -Wextra -Werror -std=c11
 GCOV_FLAGS = --coverage
 CHECK_FLAGS = $(shell pkg-config --cflags --libs check)
 
-SRC = s21_string.c s21_sscanf.c s21_special.c
-OBJ = s21_string.o s21_sscanf.o s21_special.o
+SRC = s21_string.c s21_strerror.c s21_sprintf.c s21_float_fmt.c s21_sscanf.c s21_special.c
+OBJ = s21_string.o s21_strerror.o s21_sprintf.o s21_float_fmt.o s21_sscanf.o s21_special.o
 
 TESTS = \
 	tests/test_main.c \

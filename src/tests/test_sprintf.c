@@ -355,9 +355,6 @@ START_TEST(test_string_width) {
 END_TEST
 
 START_TEST(test_string_null) {
-  /* Compared against known glibc behavior directly: passing a literal NULL
-   * to libc's own sprintf("%s", ...) here would trip
-   * -Werror=format-overflow at compile time. */
   char s1[100];
 
   int r1 = s21_sprintf(s1, "[%s]", (char *)S21_NULL);

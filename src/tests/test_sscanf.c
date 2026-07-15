@@ -4,10 +4,6 @@
 
 #include "../s21_string.h"
 
-// Part 4 (bonus) tests: compare s21_sscanf vs libc sscanf.
-// Covers: width, '*' suppression, %n, float/scientific (e/E/f/g/G),
-// int bases (i/o/x), %%, EOF/short-input, and return-count correctness.
-
 START_TEST(test_sscanf_two_ints) {
   int a1, a2, b1, b2;
   int r1 = s21_sscanf("42 -7", "%d %d", &a1, &a2);
@@ -387,9 +383,6 @@ START_TEST(test_sscanf_n_ll) {
 END_TEST
 
 START_TEST(test_sscanf_n_suppress) {
-  /* gcc's format checker rejects "%*n" as a literal libc sscanf() format
-   * (-Werror=format=), so this checks s21_sscanf directly rather than
-   * diffing against libc. */
   int d1;
   int n1 = -1;
 

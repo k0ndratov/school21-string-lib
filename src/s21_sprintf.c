@@ -284,8 +284,6 @@ static int s21_format_float(char* out, va_list args, s21_format* f) {
     is_nan = isnan(value);
     is_inf = isinf(value);
   } else {
-    /* Classify on the narrower double *before* widening: some platforms'
-     * isnan/isinf are less reliable on long double than on double. */
     double dvalue = va_arg(args, double);
     is_nan = isnan(dvalue);
     is_inf = isinf(dvalue);
@@ -424,9 +422,6 @@ int s21_sprintf(char* str, const char* format, ...) {
     char spec = fmt.specifier;
     size_t width_cap = fmt.width > 0 ? (size_t)fmt.width : 0;
     size_t prec_cap = fmt.precision > 0 ? (size_t)fmt.precision : 0;
-    /* f/e/g/G can format long double magnitudes with thousands of integer
-     * digits (see S21_MAX_INT_DIGITS); this buffer has to be large enough
-     * to hold that, not just width/precision. */
     size_t float_cap = (spec == 'f' || spec == 'e' || spec == 'E' ||
                         spec == 'g' || spec == 'G')
                            ? S21_MAX_INT_DIGITS

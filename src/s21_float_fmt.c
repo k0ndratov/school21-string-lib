@@ -67,10 +67,6 @@ static void s21_strip_trailing_zeros(char* s) {
   s[w] = '\0';
 }
 
-/* Writes the base-10 digits of a nonnegative integral long double into
- * `digits` without ever casting through a fixed-width integer type, so
- * magnitudes beyond ULLONG_MAX (~1.8e19) don't hit undefined behavior on
- * the cast. Returns the digit count. */
 static int s21_extract_int_digits(long double ip, char* digits) {
   int n = 0;
 
@@ -104,10 +100,6 @@ static int s21_extract_int_digits(long double ip, char* digits) {
   return n;
 }
 
-/* Extracts `count` base-10 digits from a fractional value 0 <= *frac < 1,
- * consuming *frac in place so the caller can inspect what (if anything)
- * remains after the requested digits for exact-tie detection. */
-
 static void s21_extract_frac_digits(long double* frac, char* digits,
                                     int count) {
   for (int i = 0; i < count; i++) {
@@ -126,11 +118,6 @@ static void s21_extract_frac_digits(long double* frac, char* digits,
   }
 }
 
-/* Round-half-to-even decision for the digit immediately after the last
- * kept one: `next_digit` is that digit's value, `has_more` says whether
- * any nonzero digits follow it, and `last_kept_digit` is the digit that
- * would need bumping to break a tie. */
-
 static int s21_round_up_half_even(int next_digit, int has_more,
                                   int last_kept_digit) {
   int round_up;
@@ -148,9 +135,6 @@ static int s21_round_up_half_even(int next_digit, int has_more,
   return round_up;
 }
 
-/* Adds 1 to a most-significant-first decimal digit string in place.
- * Returns 1 if the carry propagated past the leading digit (e.g. "99"
- * becomes "00" with a carry out that the caller must prepend a '1' for). */
 
 static int s21_digits_add_one(char* digits, int len) {
   int carry = 1;

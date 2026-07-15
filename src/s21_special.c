@@ -2,10 +2,6 @@
 
 #include "s21_string.h"
 
-// Part 5 (bonus): special string processing functions (C# String class
-// style). All functions return heap-allocated buffers the caller must
-// free(); S21_NULL is returned on any error.
-
 static s21_size_t local_strlen(const char *str) {
   s21_size_t len = 0;
   while (str[len] != '\0') len++;
@@ -16,9 +12,6 @@ static int is_upper_ascii(char c) { return c >= 'A' && c <= 'Z'; }
 
 static int is_lower_ascii(char c) { return c >= 'a' && c <= 'z'; }
 
-// s21_trim() with a NULL or empty trim_chars falls back to trimming ASCII
-// whitespace (" \t\n\r\f\v"), matching the convention of C#'s
-// String.Trim() with no arguments.
 static int is_trim_char(char c, const char *trim_chars) {
   int result = 0;
   if (trim_chars == S21_NULL || trim_chars[0] == '\0') {

@@ -30,7 +30,7 @@ START_TEST(test_strncpy_full_buffer) {
   char d2[20] = {0};
 
   char src[] = "abcdef";
-  s21_size_t n = 7;  // "abcdef" + '\0'
+  s21_size_t n = 7;
 
   s21_strncpy(d1, src, n);
   strncpy(d2, src, n);

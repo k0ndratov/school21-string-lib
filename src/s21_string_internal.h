@@ -5,9 +5,6 @@
 
 #include "s21_string.h"
 
-/* Private cross-file contract shared by s21_sprintf.c and s21_float_fmt.c.
- * Not part of the library's public API (s21_string.h). */
-
 #define S21_MAX_INT_DIGITS (LDBL_MAX_10_EXP + 8)
 
 int s21_strlen_local(const char* str);
@@ -18,4 +15,4 @@ void s21_build_sci(long double v, int precision, char expchar, int hash,
                    char* out);
 void s21_build_g(long double v, int precision, int upper, int hash, char* out);
 
-#endif  // S21_STRING_INTERNAL_H
+#endif

@@ -1,11 +1,13 @@
 #include "s21_string.h"
 
-#include <stdio.h>
+#include <float.h>
+#include <math.h>
 #include <stdlib.h>
 
 static char error_buffer[128];
 
-static const char *linux_errors[] = {
+#if !defined(__APPLE__) && !defined(__MACH__)
+static const char *s21_errors_linux[] = {
     "Success",
     "Operation not permitted",
     "No such file or directory",
@@ -142,7 +144,127 @@ static const char *linux_errors[] = {
     "Memory page has hardware error",
 };
 
-#define S21_ERRLIST_SIZE (sizeof(linux_errors) / sizeof(linux_errors[0]))
+#endif
+
+#if defined(__APPLE__) || defined(__MACH__)
+static const char *s21_errors_mac[] = {
+    "Undefined error: 0",
+    "Operation not permitted",
+    "No such file or directory",
+    "No such process",
+    "Interrupted system call",
+    "Input/output error",
+    "Device not configured",
+    "Argument list too long",
+    "Exec format error",
+    "Bad file descriptor",
+    "No child processes",
+    "Resource deadlock avoided",
+    "Cannot allocate memory",
+    "Permission denied",
+    "Bad address",
+    "Block device required",
+    "Resource busy",
+    "File exists",
+    "Cross-device link",
+    "Operation not supported by device",
+    "Not a directory",
+    "Is a directory",
+    "Invalid argument",
+    "Too many open files in system",
+    "Too many open files",
+    "Inappropriate ioctl for device",
+    "Text file busy",
+    "File too large",
+    "No space left on device",
+    "Illegal seek",
+    "Read-only file system",
+    "Too many links",
+    "Broken pipe",
+    "Numerical argument out of domain",
+    "Result too large",
+    "Resource temporarily unavailable",
+    "Operation now in progress",
+    "Operation already in progress",
+    "Socket operation on non-socket",
+    "Destination address required",
+    "Message too long",
+    "Protocol wrong type for socket",
+    "Protocol not available",
+    "Protocol not supported",
+    "Socket type not supported",
+    "Operation not supported",
+    "Protocol family not supported",
+    "Address family not supported by protocol family",
+    "Address already in use",
+    "Can't assign requested address",
+    "Network is down",
+    "Network is unreachable",
+    "Network dropped connection on reset",
+    "Software caused connection abort",
+    "Connection reset by peer",
+    "No buffer space available",
+    "Socket is already connected",
+    "Socket is not connected",
+    "Can't send after socket shutdown",
+    "Too many references: can't splice",
+    "Operation timed out",
+    "Connection refused",
+    "Too many levels of symbolic links",
+    "File name too long",
+    "Host is down",
+    "No route to host",
+    "Directory not empty",
+    "Too many processes",
+    "Too many users",
+    "Disc quota exceeded",
+    "Stale NFS file handle",
+    "Too many levels of remote in path",
+    "RPC struct is bad",
+    "RPC version wrong",
+    "RPC prog. not avail",
+    "Program version wrong",
+    "Bad procedure for program",
+    "No locks available",
+    "Function not implemented",
+    "Inappropriate file type or format",
+    "Authentication error",
+    "Need authenticator",
+    "Device power is off",
+    "Device error",
+    "Value too large to be stored in data type",
+    "Bad executable (or shared library)",
+    "Bad CPU type in executable",
+    "Shared library version mismatch",
+    "Malformed Mach-o file",
+    "Operation canceled",
+    "Identifier removed",
+    "No message of desired type",
+    "Illegal byte sequence",
+    "Attribute not found",
+    "Bad message",
+    "Multihop attempted",
+    "No message available on STREAM",
+    "Link has been severed",
+    "No STREAM resources",
+    "Not a STREAM",
+    "Protocol error",
+    "STREAM ioctl timeout",
+    "Operation not supported on socket",
+    "Policy not found",
+    "State not recoverable",
+    "Previous owner died",
+    "Interface output queue is full",
+};
+#endif
+
+#if defined(__APPLE__) || defined(__MACH__)
+#define S21_ERRLIST s21_errors_mac
+#else
+#define S21_ERRLIST s21_errors_linux
+#endif
+
+#define S21_ERRLIST_SIZE (sizeof(S21_ERRLIST) / sizeof(S21_ERRLIST[0]))
 
 s21_size_t s21_strlen(const char *str) {
   s21_size_t len = 0;
@@ -391,13 +513,50 @@ char *s21_strtok(char *str, const char *delim) {
   return token;
 }
 
+static void s21_write_unknown_error(int errnum, char *out) {
+  const char *prefix = "Unknown error ";
+  int pos = 0;
+
+  while (prefix[pos] != '\0') {
+    out[pos] = prefix[pos];
+    pos++;
+  }
+
+  unsigned int mag;
+
+  if (errnum < 0) {
+    out[pos++] = '-';
+    mag = (unsigned int)(-(errnum + 1)) + 1u;
+  } else {
+    mag = (unsigned int)errnum;
+  }
+
+  char digits[16];
+  int n = 0;
+
+  if (mag == 0) {
+    digits[n++] = '0';
+  } else {
+    while (mag > 0) {
+      digits[n++] = (char)('0' + mag % 10);
+      mag /= 10;
+    }
+  }
+
+  while (n > 0) {
+    out[pos++] = digits[--n];
+  }
+
+  out[pos] = '\0';
+}
+
 char *s21_strerror(int errnum) {
   char *result = error_buffer;
 
   if (errnum >= 0 && errnum < (int)S21_ERRLIST_SIZE) {
-    result = (char *)linux_errors[errnum];
+    result = (char *)S21_ERRLIST[errnum];
   } else {
-    sprintf(error_buffer, "Unknown error %d", errnum);
+    s21_write_unknown_error(errnum, error_buffer);
   }
 
   return result;
@@ -512,42 +671,24 @@ static int s21_ld_is_neg(long double v) {
   return v < 0 || (v == 0 && (1.0L / v) < 0);
 }
 
-static void s21_build_fixed(long double v, int precision, int hash, char *out) {
-  long double rounding = 0.5L;
+#define S21_MAX_INT_DIGITS (LDBL_MAX_10_EXP + 8)
 
-  for (int i = 0; i < precision; i++) {
-    rounding /= 10.0L;
-  }
-
-  v += rounding;
-
-  unsigned long long ip = (unsigned long long)v;
-  long double frac = v - (long double)ip;
-
-  char temp[512];
+/* Writes the base-10 digits of a nonnegative integral long double into
+ * `digits` without ever casting through a fixed-width integer type, so
+ * magnitudes beyond ULLONG_MAX (~1.8e19) don't hit undefined behavior on
+ * the cast. Returns the digit count. */
+static int s21_extract_int_digits(long double ip, char *digits) {
   int n = 0;
 
-  if (ip == 0) {
-    temp[n++] = '0';
+  if (ip == 0.0L) {
+    digits[n++] = '0';
   } else {
-    while (ip > 0) {
-      temp[n++] = (char)('0' + (int)(ip % 10));
-      ip /= 10;
-    }
-  }
+    char tmp[S21_MAX_INT_DIGITS];
+    int tn = 0;
 
-  int pos = 0;
-
-  while (n > 0) {
-    out[pos++] = temp[--n];
-  }
-
-  if (precision > 0) {
-    out[pos++] = '.';
-
-    for (int i = 0; i < precision; i++) {
-      frac *= 10.0L;
-      int d = (int)frac;
+    while (ip >= 1.0L && tn < S21_MAX_INT_DIGITS) {
+      long double q = floorl(ip / 10.0L);
+      int d = (int)(ip - q * 10.0L);
 
       if (d < 0) {
         d = 0;
@@ -556,14 +697,128 @@ static void s21_build_fixed(long double v, int precision, int hash, char *out) {
         d = 9;
       }
 
-      out[pos++] = (char)('0' + d);
-      frac -= d;
+      tmp[tn++] = (char)('0' + d);
+      ip = q;
+    }
+
+    while (tn > 0) {
+      digits[n++] = tmp[--tn];
+    }
+  }
+
+  digits[n] = '\0';
+  return n;
+}
+
+/* Extracts `count` base-10 digits from a fractional value 0 <= *frac < 1,
+ * consuming *frac in place so the caller can inspect what (if anything)
+ * remains after the requested digits for exact-tie detection. */
+static void s21_extract_frac_digits(long double *frac, char *digits,
+                                    int count) {
+  for (int i = 0; i < count; i++) {
+    *frac *= 10.0L;
+    int d = (int)(*frac);
+
+    if (d < 0) {
+      d = 0;
+    }
+    if (d > 9) {
+      d = 9;
+    }
+
+    digits[i] = (char)('0' + d);
+    *frac -= d;
+  }
+}
+
+/* Round-half-to-even decision for the digit immediately after the last
+ * kept one: `next_digit` is that digit's value, `has_more` says whether
+ * any nonzero digits follow it, and `last_kept_digit` is the digit that
+ * would need bumping to break a tie. */
+static int s21_round_up_half_even(int next_digit, int has_more,
+                                  int last_kept_digit) {
+  int round_up;
+
+  if (next_digit > 5) {
+    round_up = 1;
+  } else if (next_digit < 5) {
+    round_up = 0;
+  } else if (has_more) {
+    round_up = 1;
+  } else {
+    round_up = (last_kept_digit % 2) == 1;
+  }
+
+  return round_up;
+}
+
+/* Adds 1 to a most-significant-first decimal digit string in place.
+ * Returns 1 if the carry propagated past the leading digit (e.g. "99"
+ * becomes "00" with a carry out that the caller must prepend a '1' for). */
+static int s21_digits_add_one(char *digits, int len) {
+  int carry = 1;
+
+  for (int i = len - 1; i >= 0 && carry; i--) {
+    int d = (digits[i] - '0') + 1;
+
+    if (d == 10) {
+      digits[i] = '0';
+    } else {
+      digits[i] = (char)('0' + d);
+      carry = 0;
+    }
+  }
+
+  return carry;
+}
+
+static void s21_build_fixed(long double v, int precision, int hash, char *out) {
+  long double ip_ld = floorl(v);
+  long double frac = v - ip_ld;
+
+  char ip_digits[S21_MAX_INT_DIGITS + 2];
+  int ip_n = s21_extract_int_digits(ip_ld, ip_digits);
+
+  char *frac_digits = malloc((size_t)precision + 2);
+  if (frac_digits == S21_NULL) {
+    out[0] = '\0';
+    return;
+  }
+
+  s21_extract_frac_digits(&frac, frac_digits, precision + 1);
+
+  int guard = frac_digits[precision] - '0';
+  int has_more = frac > 0.0L;
+  int last_kept =
+      (precision > 0) ? (frac_digits[precision - 1] - '0') : (ip_digits[ip_n - 1] - '0');
+
+  if (s21_round_up_half_even(guard, has_more, last_kept)) {
+    int carry = (precision > 0) ? s21_digits_add_one(frac_digits, precision) : 1;
+
+    if (carry && s21_digits_add_one(ip_digits, ip_n)) {
+      s21_shift_right(ip_digits, 1, '1');
+      ip_n++;
+    }
+  }
+
+  int pos = 0;
+
+  for (int i = 0; i < ip_n; i++) {
+    out[pos++] = ip_digits[i];
+  }
+
+  if (precision > 0) {
+    out[pos++] = '.';
+
+    for (int i = 0; i < precision; i++) {
+      out[pos++] = frac_digits[i];
     }
   } else if (hash) {
     out[pos++] = '.';
   }
 
   out[pos] = '\0';
+  free(frac_digits);
 }
 
 static void s21_build_sci(long double v, int precision, char expchar, int hash,
@@ -581,20 +836,6 @@ static void s21_build_sci(long double v, int precision, char expchar, int hash,
     }
   }
 
-  long double rounding = 0.5L;
-
-  for (int i = 0; i < precision; i++) {
-    rounding /= 10.0L;
-  }
-
-  v += rounding;
-
-  if (v >= 10.0L) {
-    v /= 10.0L;
-    exp++;
-  }
-
-  int pos = 0;
   int lead = (int)v;
 
   if (lead < 0) {
@@ -604,30 +845,46 @@ static void s21_build_sci(long double v, int precision, char expchar, int hash,
     lead = 9;
   }
 
-  out[pos++] = (char)('0' + lead);
-
   long double frac = v - lead;
+
+  char *frac_digits = malloc((size_t)precision + 2);
+  if (frac_digits == S21_NULL) {
+    out[0] = '\0';
+    return;
+  }
+
+  s21_extract_frac_digits(&frac, frac_digits, precision + 1);
+
+  int guard = frac_digits[precision] - '0';
+  int has_more = frac > 0.0L;
+  int last_kept = (precision > 0) ? (frac_digits[precision - 1] - '0') : lead;
+
+  if (s21_round_up_half_even(guard, has_more, last_kept)) {
+    int carry = (precision > 0) ? s21_digits_add_one(frac_digits, precision) : 1;
+
+    if (carry) {
+      lead++;
+      if (lead == 10) {
+        lead = 1;
+        exp++;
+      }
+    }
+  }
+
+  int pos = 0;
+  out[pos++] = (char)('0' + lead);
 
   if (precision > 0) {
     out[pos++] = '.';
 
     for (int i = 0; i < precision; i++) {
-      frac *= 10.0L;
-      int d = (int)frac;
-
-      if (d < 0) {
-        d = 0;
-      }
-      if (d > 9) {
-        d = 9;
-      }
-
-      out[pos++] = (char)('0' + d);
-      frac -= d;
+      out[pos++] = frac_digits[i];
     }
   } else if (hash) {
     out[pos++] = '.';
   }
+
+  free(frac_digits);
 
   out[pos++] = expchar;
 
@@ -940,11 +1197,27 @@ static int s21_format_float(char *out, va_list args, s21_format *f) {
     value = va_arg(args, double);
   }
 
+  if (isnan(value) || isinf(value)) {
+    int neg = signbit(value);
+    int upper_word = (f->specifier == 'E' || f->specifier == 'G');
+    const char *word;
+
+    if (isnan(value)) {
+      word = upper_word ? "NAN" : "nan";
+    } else {
+      word = upper_word ? "INF" : "inf";
+    }
+
+    const char *sign = neg ? "-" : (f->plus ? "+" : (f->space ? " " : ""));
+
+    return s21_build_num_field(out, sign, "", word, f, 0);
+  }
+
   int neg = s21_ld_is_neg(value);
   long double mag = neg ? -value : value;
   int prec = f->precision < 0 ? 6 : f->precision;
 
-  size_t dcap = (prec > 0 ? (size_t)prec : 0) + 64;
+  size_t dcap = (prec > 0 ? (size_t)prec : 0) + S21_MAX_INT_DIGITS + 64;
   char *digits = malloc(dcap);
   if (digits == S21_NULL) {
     return 0;

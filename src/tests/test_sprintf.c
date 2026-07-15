@@ -1,4 +1,5 @@
 #include <check.h>
+#include <math.h>
 #include <stdio.h>
 
 #include "../s21_string.h"
@@ -333,6 +334,98 @@ START_TEST(test_harden_edge) {
 }
 END_TEST
 
+START_TEST(test_char_width) {
+  CK_CMP("%5c", 'A');
+  CK_CMP("%-5c", 'A');
+  CK_CMP("%1c", 'A');
+  CK_CMP("[%5c]", 'z');
+  CK_CMP("[%-5c]", 'z');
+}
+END_TEST
+
+START_TEST(test_string_width) {
+  CK_CMP("%10s", "hi");
+  CK_CMP("%-10s", "hi");
+  CK_CMP("%.3s", "hello");
+  CK_CMP("%10.3s", "hello");
+  CK_CMP("%-10.3s", "hello");
+  CK_CMP("%.0s", "hello");
+  CK_CMP("%1s", "hello");
+}
+END_TEST
+
+START_TEST(test_string_null) {
+  /* Compared against known glibc behavior directly: passing a literal NULL
+   * to libc's own sprintf("%s", ...) here would trip
+   * -Werror=format-overflow at compile time. */
+  char s1[100];
+
+  int r1 = s21_sprintf(s1, "[%s]", (char *)S21_NULL);
+
+  ck_assert_int_eq(r1, 8);
+  ck_assert_str_eq(s1, "[(null)]");
+}
+END_TEST
+
+START_TEST(test_round_half_even_ties) {
+  CK_CMP("%.0f", 0.5);
+  CK_CMP("%.0f", 2.5);
+  CK_CMP("%.0f", 4.5);
+  CK_CMP("%.0f", 9.5);
+  CK_CMP("%.2f", 0.125);
+  CK_CMP("%.0e", 9.5);
+  CK_CMP("%.2e", 9.995);
+}
+END_TEST
+
+START_TEST(test_float_hash_zero_precision) {
+  CK_CMP("%#.0f", 3.0);
+  CK_CMP("%#.0e", 3.0);
+}
+END_TEST
+
+START_TEST(test_general_precision_zero_and_wide) {
+  CK_CMP("%.0g", 123.0);
+  CK_CMP("%g", 123456789.0);
+}
+END_TEST
+
+START_TEST(test_space_flag) {
+  CK_CMP("% d", 5);
+  CK_CMP("% d", -5);
+}
+END_TEST
+
+START_TEST(test_short_unsigned) {
+  unsigned short value = 300;
+  CK_CMP("%hu", value);
+}
+END_TEST
+
+START_TEST(test_inf_nan) {
+  CK_CMP("%f", INFINITY);
+  CK_CMP("%f", -INFINITY);
+  CK_CMP("%f", NAN);
+  CK_CMP("%e", INFINITY);
+  CK_CMP("%E", NAN);
+  CK_CMP("%G", -INFINITY);
+  CK_CMP("%+f", INFINITY);
+  CK_CMP("%10f", INFINITY);
+  CK_CMP("%-10f", INFINITY);
+  CK_CMP("%010f", INFINITY);
+}
+END_TEST
+
+START_TEST(test_unknown_specifier) {
+  char s1[100];
+
+  int r1 = s21_sprintf(s1, "x%qy");
+
+  ck_assert_int_eq(r1, 4);
+  ck_assert_str_eq(s1, "x%qy");
+}
+END_TEST
+
 Suite *sprintf_suite(void) {
   Suite *suite = suite_create("s21_sprintf");
   TCase *tc = tcase_create("Core");
@@ -365,6 +458,16 @@ Suite *sprintf_suite(void) {
   tcase_add_test(tc, test_harden_long);
   tcase_add_test(tc, test_harden_big_double);
   tcase_add_test(tc, test_harden_edge);
+  tcase_add_test(tc, test_char_width);
+  tcase_add_test(tc, test_string_width);
+  tcase_add_test(tc, test_string_null);
+  tcase_add_test(tc, test_round_half_even_ties);
+  tcase_add_test(tc, test_float_hash_zero_precision);
+  tcase_add_test(tc, test_general_precision_zero_and_wide);
+  tcase_add_test(tc, test_space_flag);
+  tcase_add_test(tc, test_short_unsigned);
+  tcase_add_test(tc, test_inf_nan);
+  tcase_add_test(tc, test_unknown_specifier);
 
   suite_add_tcase(suite, tc);
 

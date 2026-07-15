@@ -38,11 +38,11 @@ $(OBJ): $(SRC)
 	$(CC) $(CFLAGS) -c $(SRC)
 
 test:
-	$(CC) $(CFLAGS) $(SRC) $(TESTS) -o test $(CHECK_FLAGS)
+	$(CC) $(CFLAGS) $(SRC) $(TESTS) -o test $(CHECK_FLAGS) -lm
 	./test
 
 gcov_report:
-	$(CC) $(CFLAGS) $(GCOV_FLAGS) $(SRC) $(TESTS) -o test $(CHECK_FLAGS)
+	$(CC) $(CFLAGS) $(GCOV_FLAGS) $(SRC) $(TESTS) -o test $(CHECK_FLAGS) -lm
 	./test
 	lcov -t "s21_string" -o coverage.info -c -d .
 	genhtml coverage.info -o report
